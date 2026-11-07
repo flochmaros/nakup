@@ -47,7 +47,7 @@
   --card:rgba(255,255,255,.80);
   --row:#FFFFFF;
   --glass:rgba(252,255,255,.62);
-  --glass-strong:rgba(252,255,255,.80);
+  --glass-strong:rgba(252,255,255,.9);
   --sheet:#FCFFFF;
   --sky-soft:rgba(5,147,198,.11);
   --pink-soft:rgba(216,57,149,.11);
@@ -76,7 +76,7 @@
     --card:rgba(24,30,41,.78);
     --row:#181E29;
     --glass:rgba(24,30,41,.55);
-    --glass-strong:rgba(24,30,41,.78);
+    --glass-strong:rgba(24,30,41,.9);
     --sheet:#121821;
     --sky:#20A7D8;
     --sky-soft:rgba(32,167,216,.16);
@@ -213,10 +213,17 @@ body.kb .composer{padding-bottom:8px}
   transform-origin:50% 100%;opacity:0;transform:translateY(14px) scale(.96);pointer-events:none;visibility:hidden;
   transition:opacity .2s,transform .5s var(--spring),visibility 0s .5s}
 body.composing .panel{opacity:1;transform:none;pointer-events:auto;visibility:visible;transition:opacity .2s,transform .5s var(--spring),visibility 0s}
-.panel-label{padding:0 18px 8px;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--label2)}
+.panel-grip{position:absolute;top:6px;left:50%;width:36px;height:5px;margin-left:-18px;border-radius:3px;background:var(--label3);opacity:.5}
+.panel-x{position:absolute;top:8px;right:10px;z-index:1;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--fill);color:var(--label2);transition:transform .35s var(--spring)}
+.panel-x:active{transform:scale(.85)}
+.panel-x svg{width:18px;height:18px}
+.panel{touch-action:pan-x}
+body:not(.has-text) #catWrap{display:none}
+#suggWrap:not([hidden]) + #catWrap{margin-top:14px}
+body.panel-empty .panel{opacity:0!important;transform:translateY(14px) scale(.96)!important;pointer-events:none!important;visibility:hidden!important}
+.panel-label{padding:0 52px 8px 18px;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--label2)}
 .chips{display:flex;gap:8px;overflow-x:auto;padding:0 14px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .chips::-webkit-scrollbar{display:none}
-.chips + .panel-label{margin-top:14px}
 .chip{flex:none;display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:18px;background:var(--fill);font-size:15px;font-weight:500;white-space:nowrap;
   -webkit-touch-callout:none;transition:transform .45s var(--spring),background-color .2s,color .2s,box-shadow .2s}
 .chip:active{transform:scale(.9)}
@@ -391,12 +398,16 @@ body.onboarding .app,body.onboarding .nav,body.onboarding .composer{display:none
 
 <div class="composer" id="composer">
   <div class="panel" id="panel">
+    <div class="panel-grip" id="panelGrip" aria-hidden="true"></div>
+    <button class="panel-x" id="panelX" type="button" aria-label="Skryť"><svg class="i" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
     <div id="suggWrap">
       <div class="panel-label" id="suggLabel">Často kupujete</div>
       <div class="chips sugg" id="sugg"></div>
     </div>
-    <div class="panel-label">Kategória</div>
-    <div class="chips cats" id="cats"></div>
+    <div id="catWrap">
+      <div class="panel-label">Kategória</div>
+      <div class="chips cats" id="cats"></div>
+    </div>
   </div>
   <form class="bar" id="addForm" autocomplete="off">
     <input id="addInput" type="text" placeholder="Pridať položku" maxlength="100" enterkeyhint="done" autocapitalize="sentences" aria-label="Nová položka">
@@ -1142,6 +1153,7 @@ function paintSugg(q) {
   const list = suggestions(q);
   const box = $('#sugg');
   $('#suggWrap').hidden = !list.length;
+  document.body.classList.toggle('panel-empty', !list.length && !input.value.trim());
   $('#suggLabel').textContent = q ? 'Návrhy' : 'Často kupujete';
   box.textContent = '';
   for (const h of list) {
@@ -1191,7 +1203,7 @@ $('#draftStepper').addEventListener('click', e => {
 });
 
 // Tlačidlá v paneli nesmú zobrať fokus z poľa (inak by sa zavrela klávesnica)
-$('#composer').addEventListener('mousedown', e => { if (e.target.closest('button')) e.preventDefault(); });
+$('#composer').addEventListener('mousedown', e => { if (e.target.closest('button') || e.target.closest('#panel')) e.preventDefault(); });
 $('#composer').addEventListener('pointerdown', e => { if (e.target.closest('.bar button') && document.activeElement === input) e.preventDefault(); });
 
 $('#addForm').addEventListener('submit', e => {
@@ -1205,10 +1217,40 @@ $('#addForm').addEventListener('submit', e => {
   }
   input.focus();
 });
-input.addEventListener('focus', () => { document.body.classList.add('composing'); updateComposer(); });
-input.addEventListener('blur', () => setTimeout(() => { if (document.activeElement !== input) document.body.classList.remove('composing'); }, 150));
+input.addEventListener('focus', () => { resetPanelDrag(); document.body.classList.add('composing'); updateComposer(); });
+input.addEventListener('blur', () => setTimeout(() => { if (document.activeElement !== input) { document.body.classList.remove('composing'); resetPanelDrag(); } }, 150));
 input.addEventListener('input', updateComposer);
-input.addEventListener('keydown', e => { if (e.key === 'Escape') input.blur(); });
+input.addEventListener('keydown', e => { if (e.key === 'Escape') closeComposer(); });
+
+/* Panel sa dá skryť: šípkou, potiahnutím dole, ťuknutím mimo neho alebo zavretím klávesnice */
+function resetPanelDrag() { const p = $('#panel'); p.style.transition = ''; p.style.transform = ''; }
+function closeComposer() {
+  resetPanelDrag();
+  input.blur();
+  document.body.classList.remove('composing');
+}
+$('#panelX').addEventListener('click', closeComposer);
+document.addEventListener('pointerdown', e => {
+  if (document.body.classList.contains('composing') && !e.target.closest('#composer')) closeComposer();
+}, true);
+(() => {
+  const panel = $('#panel'); let y0 = null, dy = 0, pid = null;
+  panel.addEventListener('pointerdown', e => { if (e.target.closest('.chip')) return; y0 = e.clientY; dy = 0; pid = e.pointerId; });
+  panel.addEventListener('pointermove', e => {
+    if (e.pointerId !== pid || y0 == null) return;
+    dy = Math.max(0, e.clientY - y0);
+    if (dy > 4) {
+      try { panel.setPointerCapture(pid); } catch {}
+      panel.style.transition = 'none'; panel.style.transform = `translateY(${dy}px)`;
+    }
+  });
+  const end = e => {
+    if (e.pointerId !== pid) return; pid = null; y0 = null;
+    panel.style.transition = ''; panel.style.transform = '';
+    if (dy > 40) closeComposer();
+  };
+  panel.addEventListener('pointerup', end); panel.addEventListener('pointercancel', end);
+})();
 
 // iPhone: klávesnica neposúva fixné prvky, tak panel posúvame sami
 if (window.visualViewport) {
@@ -1216,7 +1258,9 @@ if (window.visualViewport) {
   const onVV = () => {
     const kb = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
     document.documentElement.style.setProperty('--kb', kb + 'px');
+    const was = document.body.classList.contains('kb');
     document.body.classList.toggle('kb', kb > 60);
+    if (was && kb <= 60 && document.activeElement === input) closeComposer();
   };
   vv.addEventListener('resize', onVV); vv.addEventListener('scroll', onVV);
 }
