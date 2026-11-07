@@ -1,0 +1,40 @@
+rules_version = '2';
+
+// Pravidlá pre Firestore: skopíruj celý tento text do
+// Firebase konzola → Firestore Database → Rules → Publish
+//
+// - do zoznamu sa dostane len appka (anonymné prihlásenie)
+// - len ten, kto pozná dlhý kód zoznamu z odkazu
+// - zoznamy sa nedajú vypísať ani prehľadávať
+// - položky musia mať rozumný tvar (nikto tam nenahrá nezmysly)
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function okList(id) { return id.size() >= 16 && id.size() <= 64; }
+
+    function okItem(d) {
+      return d.name is string && d.name.size() > 0 && d.name.size() <= 100
+        && d.qty is int && d.qty >= 1 && d.qty <= 99
+        && d.cat is string && d.cat.size() <= 20
+        && d.done is bool
+        && d.by is string && d.by.size() <= 30;
+    }
+
+    function okHist(d) {
+      return d.name is string && d.name.size() <= 100
+        && d.cat is string && d.cat.size() <= 20;
+    }
+
+    match /lists/{listId}/items/{itemId} {
+      allow read, delete: if signedIn() && okList(listId);
+      allow create, update: if signedIn() && okList(listId) && okItem(request.resource.data);
+    }
+
+    match /lists/{listId}/history/{key} {
+      allow read, delete: if signedIn() && okList(listId);
+      allow create, update: if signedIn() && okList(listId) && okHist(request.resource.data);
+    }
+  }
+}

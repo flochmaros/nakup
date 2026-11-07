@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<title>Nákup</title>
+<meta name="description" content="Spoločný nákupný zoznam pre celú rodinu">
+<meta name="theme-color" content="#FCFFFF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#070B12" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Nákup">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<script src="config.js"></script>
+<style>
+/* ───────────────────────── Farby a základy ───────────────────────── */
+:root{
+  --sky:#0593C6;
+  --pink:#D83995;
+  --white:#FCFFFF;
+
+  --bg:#FCFFFF;
+  --label:#0B1B26;
+  --label2:rgba(11,27,38,.58);
+  --label3:rgba(11,27,38,.30);
+  --sep:rgba(11,27,38,.09);
+  --stroke:rgba(11,27,38,.07);
+  --fill:rgba(11,27,38,.055);
+  --card:rgba(255,255,255,.80);
+  --glass:rgba(252,255,255,.62);
+  --glass-strong:rgba(252,255,255,.80);
+  --sheet:#FCFFFF;
+  --sky-soft:rgba(5,147,198,.11);
+  --pink-soft:rgba(216,57,149,.11);
+  --shadow:0 1px 2px rgba(5,40,60,.05), 0 10px 30px -14px rgba(5,40,60,.18);
+  --flute:rgba(255,255,255,.28);
+
+  --ease:cubic-bezier(.25,.8,.25,1);
+  --spring:cubic-bezier(.3,1.35,.5,1);
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Segoe UI",Roboto,"Helvetica Neue",system-ui,sans-serif;
+}
+@supports (transition-timing-function: linear(0, 1)){
+  :root{
+    /* jemná pružina ako v iOS */
+    --spring:linear(0, .006, .025 2.8%, .101 6.1%, .539 18.9%, .721 25.3%, .849 31.5%, .937 38.1%, .968 41.8%, .991 45.7%, 1.006 50.1%, 1.015 55%, 1.017 63.9%, 1.001);
+  }
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#070B12;
+    --label:#F2F8FB;
+    --label2:rgba(242,248,251,.6);
+    --label3:rgba(242,248,251,.3);
+    --sep:rgba(255,255,255,.09);
+    --stroke:rgba(255,255,255,.08);
+    --fill:rgba(255,255,255,.075);
+    --card:rgba(24,30,41,.78);
+    --glass:rgba(24,30,41,.55);
+    --glass-strong:rgba(24,30,41,.78);
+    --sheet:#121821;
+    --sky:#20A7D8;
+    --sky-soft:rgba(32,167,216,.16);
+    --pink-soft:rgba(216,57,149,.18);
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 30px -14px rgba(0,0,0,.6);
+    --flute:rgba(255,255,255,.05);
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;background:var(--bg)}
+body{margin:0;min-height:100dvh;font-family:var(--font);background:var(--bg);color:var(--label);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer;-webkit-user-select:none;user-select:none}
+input{font:inherit;color:inherit}
+input:focus{outline:none}
+[hidden]{display:none!important}
+svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ───────────────────────── Pozadie: aurora + „fluted glass“ ───────────────────────── */
+.aurora{position:fixed;inset:0 0 auto 0;height:78vh;z-index:0;pointer-events:none;overflow:hidden;
+  -webkit-mask-image:linear-gradient(#000 0%,#000 30%,transparent 100%);mask-image:linear-gradient(#000 0%,#000 30%,transparent 100%)}
+.aurora i{position:absolute;border-radius:50%;will-change:transform}
+.aurora .b1{width:95vw;height:95vw;max-width:620px;max-height:620px;left:-28vw;top:-34vw;background:radial-gradient(closest-side,rgba(5,147,198,.55),rgba(5,147,198,0));animation:d1 19s ease-in-out infinite alternate}
+.aurora .b2{width:85vw;height:85vw;max-width:560px;max-height:560px;right:-30vw;top:-14vw;background:radial-gradient(closest-side,rgba(216,57,149,.42),rgba(216,57,149,0));animation:d2 23s ease-in-out infinite alternate}
+.aurora .b3{width:70vw;height:70vw;max-width:480px;max-height:480px;left:12vw;top:22vh;background:radial-gradient(closest-side,rgba(5,147,198,.24),rgba(5,147,198,0));animation:d3 27s ease-in-out infinite alternate}
+.aurora .flutes{position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 9px,var(--flute) 9px 10px,transparent 10px 13px)}
+@keyframes d1{to{transform:translate3d(16vw,10vh,0) scale(1.15)}}
+@keyframes d2{to{transform:translate3d(-14vw,14vh,0) scale(1.1)}}
+@keyframes d3{to{transform:translate3d(-10vw,-8vh,0) scale(1.2)}}
+
+/* ───────────────────────── Navigácia ───────────────────────── */
+.nav{position:fixed;top:0;left:0;right:0;z-index:20;padding-top:env(safe-area-inset-top);transition:background-color .3s,box-shadow .3s}
+.nav-inner{position:relative;max-width:640px;margin:0 auto;height:52px;display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:0 16px}
+.nav-title{position:absolute;left:50%;top:50%;transform:translate(-50%,-30%);opacity:0;font-weight:600;font-size:17px;letter-spacing:-.02em;transition:opacity .25s,transform .45s var(--spring);pointer-events:none}
+body.scrolled .nav{background:var(--glass-strong);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);box-shadow:0 .5px 0 var(--sep)}
+body.scrolled .nav-title{opacity:1;transform:translate(-50%,-50%)}
+.icon-btn{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:var(--sky);background:var(--glass);
+  -webkit-backdrop-filter:blur(16px) saturate(160%);backdrop-filter:blur(16px) saturate(160%);
+  box-shadow:inset 0 0 0 .5px var(--stroke),0 4px 14px -6px rgba(5,40,60,.25);transition:transform .45s var(--spring)}
+.icon-btn:active{transform:scale(.86)}
+.me-btn{font-size:14px;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--sky),var(--pink));box-shadow:0 6px 16px -6px rgba(216,57,149,.6)}
+
+/* ───────────────────────── Obsah ───────────────────────── */
+.app{position:relative;z-index:1;max-width:640px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 52px) 16px calc(130px + env(safe-area-inset-bottom))}
+.hero{padding:4px 4px 6px}
+.large-title{margin:0;font-size:34px;line-height:41px;font-weight:700;letter-spacing:-.022em;transform-origin:left center;will-change:transform}
+.meta{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;margin-top:8px;color:var(--label2);font-size:15px}
+.status{display:inline-flex;align-items:center;gap:7px;height:24px;padding:0 10px 0 9px;border-radius:12px;font-size:13px;font-weight:600;background:var(--sky-soft);color:var(--sky);transition:background-color .3s,color .3s}
+.status i{position:relative;width:7px;height:7px;border-radius:50%;background:currentColor}
+.status.live i::after{content:"";position:absolute;inset:0;border-radius:50%;background:currentColor;animation:ping 2.2s cubic-bezier(0,0,.2,1) infinite}
+.status.saving i{animation:blink 1s ease-in-out infinite}
+.status.offline{background:var(--fill);color:var(--label2)}
+.status.demo{background:var(--pink-soft);color:var(--pink)}
+.status.error{background:rgba(255,59,48,.12);color:#FF453A}
+@keyframes ping{75%,100%{transform:scale(2.8);opacity:0}}
+@keyframes blink{50%{opacity:.25}}
+.people{display:flex;align-items:center;padding-left:8px;margin-top:14px;min-height:30px}
+.av{width:30px;height:30px;margin-left:-8px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff;box-shadow:0 0 0 2px var(--bg);animation:pop-in .5s var(--spring) both}
+.av.more{background:var(--fill);color:var(--label2)}
+.people .who{margin-left:10px;font-size:13px;color:var(--label2)}
+@keyframes pop-in{from{transform:scale(.4);opacity:0}}
+
+.install{display:flex;align-items:center;gap:12px;margin:18px 0 0;padding:12px 12px 12px 14px;border-radius:18px;background:var(--card);box-shadow:var(--shadow);font-size:14px;color:var(--label2)}
+.install b{color:var(--label);font-weight:600;display:block;font-size:15px}
+.install .grow{flex:1}
+.install .x{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:var(--label3)}
+.mini-btn{height:32px;padding:0 14px;border-radius:16px;background:var(--sky-soft);color:var(--sky);font-size:14px;font-weight:600}
+
+/* Skupiny a položky */
+.group{margin-top:26px}
+.group-title{display:flex;align-items:center;gap:8px;margin:0 6px 9px;font-size:15px;font-weight:600;letter-spacing:-.01em}
+.group-title .emoji{font-size:18px;line-height:1}
+.group-title .count{margin-left:auto;color:var(--label3);font-weight:500;font-variant-numeric:tabular-nums}
+.card{border-radius:22px;background:var(--card);box-shadow:var(--shadow),inset 0 0 0 .5px var(--stroke);overflow:hidden}
+.item{position:relative;display:flex;align-items:center;gap:6px;min-height:58px;padding:7px 14px 7px 8px;transition:background-color .2s}
+.item + .item::before{content:"";position:absolute;top:0;left:52px;right:0;height:.5px;background:var(--sep)}
+.item:has(.body:active){background:var(--fill)}
+.check{flex:none;width:44px;height:44px;display:grid;place-items:center;border-radius:50%}
+.check svg{width:26px;height:26px;overflow:visible}
+.check .ring{fill:transparent;stroke:var(--label3);stroke-width:1.6;transition:fill .22s,stroke .22s}
+.check .tick{fill:none;stroke:#fff;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:15;stroke-dashoffset:15;transition:stroke-dashoffset .32s .06s var(--ease)}
+.item.checking .ring,.item.done .ring{fill:var(--pink);stroke:var(--pink)}
+.item.checking .tick,.item.done .tick{stroke-dashoffset:0}
+.item.checking .check svg{animation:press .5s var(--spring)}
+.item.unchecking .check svg{animation:press .4s var(--spring)}
+@keyframes press{0%{transform:scale(1)}30%{transform:scale(.78)}100%{transform:scale(1)}}
+.body{flex:1;min-width:0;text-align:left;padding:6px 0;-webkit-user-select:none;user-select:none}
+.name{font-size:17px;line-height:22px;letter-spacing:-.01em;overflow-wrap:anywhere}
+.txt{background:linear-gradient(currentColor,currentColor) no-repeat 0 60%/0% 1.6px;transition:background-size .38s var(--ease),color .3s}
+.item.checking .txt,.item.done .txt{background-size:100% 1.6px;color:var(--label2)}
+.sub{margin-top:1px;font-size:13px;line-height:17px;color:var(--label2)}
+.sub:empty{display:none}
+.item.done{opacity:.7}
+.item.done .ring{fill:var(--label3);stroke:transparent}
+.qty{flex:none;min-width:36px;height:28px;padding:0 10px;border-radius:14px;display:grid;place-items:center;background:var(--sky-soft);color:var(--sky);font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+.item.done .qty{background:var(--fill);color:var(--label2)}
+.item.flash{animation:flash 1s var(--ease)}
+@keyframes flash{0%,100%{background-color:transparent}25%{background-color:var(--pink-soft)}}
+
+/* Kúpené */
+.done-section{margin-top:30px}
+.done-head{display:flex;align-items:center;margin:0 6px 9px}
+.done-toggle{display:flex;align-items:center;gap:6px;height:32px;font-size:15px;font-weight:600;color:var(--label2)}
+.done-toggle svg{width:16px;height:16px;transition:transform .45s var(--spring)}
+.done-section.open .done-toggle svg{transform:rotate(90deg)}
+.done-toggle .n{font-variant-numeric:tabular-nums;color:var(--label3);font-weight:500}
+.clear-btn{margin-left:auto;height:32px;padding:0 4px;font-size:15px;font-weight:500;color:var(--pink)}
+.done-section:not(.open) .card{display:none}
+
+/* Prázdny stav */
+.empty{margin:56px auto 0;max-width:320px;text-align:center}
+.empty .art{width:112px;height:112px;margin:0 auto 22px;animation:float 6s ease-in-out infinite}
+.empty h3{margin:0 0 6px;font-size:22px;font-weight:700;letter-spacing:-.02em}
+.empty p{margin:0;font-size:15px;line-height:1.45;color:var(--label2)}
+@keyframes float{50%{transform:translateY(-8px) rotate(-2deg)}}
+
+/* ───────────────────────── Spodný panel na pridávanie ───────────────────────── */
+.composer{position:fixed;left:0;right:0;bottom:var(--kb,0px);z-index:30;padding:0 12px calc(env(safe-area-inset-bottom) + 10px);pointer-events:none}
+body.kb .composer{padding-bottom:8px}
+.composer > *{pointer-events:auto;max-width:616px;margin-left:auto;margin-right:auto}
+.panel{margin-bottom:8px;padding:14px 0 12px;border-radius:26px;background:var(--glass-strong);
+  -webkit-backdrop-filter:blur(30px) saturate(180%);backdrop-filter:blur(30px) saturate(180%);
+  box-shadow:inset 0 0 0 .5px var(--stroke),0 18px 40px -16px rgba(5,40,60,.35);
+  transform-origin:50% 100%;opacity:0;transform:translateY(14px) scale(.96);pointer-events:none;visibility:hidden;
+  transition:opacity .2s,transform .5s var(--spring),visibility 0s .5s}
+body.composing .panel{opacity:1;transform:none;pointer-events:auto;visibility:visible;transition:opacity .2s,transform .5s var(--spring),visibility 0s}
+.panel-label{padding:0 18px 8px;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--label2)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:0 14px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.chips::-webkit-scrollbar{display:none}
+.chips + .panel-label{margin-top:14px}
+.chip{flex:none;display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:18px;background:var(--fill);font-size:15px;font-weight:500;white-space:nowrap;
+  -webkit-touch-callout:none;transition:transform .45s var(--spring),background-color .2s,color .2s,box-shadow .2s}
+.chip:active{transform:scale(.9)}
+.chip.on{background:var(--pink);color:#fff;box-shadow:0 6px 16px -6px rgba(216,57,149,.7)}
+.sugg .chip{background:var(--sky-soft);color:var(--sky)}
+.sugg .chip svg{width:14px;height:14px;stroke-width:2.6}
+.sugg .chip.added{animation:chip-go .5s var(--ease) forwards}
+@keyframes chip-go{to{transform:translateY(-14px) scale(.8);opacity:0}}
+.bar{display:flex;align-items:center;gap:8px;height:58px;padding:0 7px 0 20px;border-radius:29px;background:var(--glass-strong);
+  -webkit-backdrop-filter:blur(30px) saturate(180%);backdrop-filter:blur(30px) saturate(180%);
+  box-shadow:inset 0 0 0 .5px var(--stroke),0 14px 34px -10px rgba(5,40,60,.32)}
+.bar input{flex:1;min-width:0;height:100%;border:0;background:transparent;font-size:17px;letter-spacing:-.01em}
+.bar input::placeholder{color:var(--label3)}
+.stepper{display:none;align-items:center;height:38px;border-radius:19px;background:var(--fill);animation:pop-in .4s var(--spring)}
+body.has-text .stepper{display:flex}
+.stepper button{width:32px;height:38px;display:grid;place-items:center;color:var(--sky);font-size:22px;font-weight:500;line-height:1}
+.stepper output{min-width:18px;text-align:center;font-weight:600;font-variant-numeric:tabular-nums}
+.add-btn{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:#fff;background:var(--pink);
+  box-shadow:0 8px 20px -6px rgba(216,57,149,.75);transition:transform .45s var(--spring)}
+.add-btn:active{transform:scale(.84)}
+.add-btn svg{width:22px;height:22px;stroke-width:2.6}
+.add-btn.spin svg{animation:spin .55s var(--spring)}
+@keyframes spin{from{transform:rotate(-90deg) scale(.6)}}
+
+/* ───────────────────────── Sheet (spodné okno) ───────────────────────── */
+.backdrop{position:fixed;inset:0;z-index:40;background:rgba(3,10,18,.32);opacity:0;pointer-events:none;transition:opacity .35s}
+.backdrop.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:41;max-width:640px;max-height:90dvh;margin:0 auto;overflow-y:auto;overscroll-behavior:contain;
+  padding:0 20px calc(env(safe-area-inset-bottom) + 20px);border-radius:30px 30px 0 0;background:var(--sheet);
+  box-shadow:0 -12px 40px rgba(0,0,0,.18);transform:translateY(110%);transition:transform .55s var(--spring);visibility:hidden}
+.sheet.on{transform:none;visibility:visible}
+.sheet.dragging{transition:none}
+.sheet-head{position:sticky;top:0;z-index:2;padding:8px 0 6px;background:var(--sheet);touch-action:none}
+.grabber{width:38px;height:5px;margin:0 auto;border-radius:3px;background:var(--label3);opacity:.6}
+.sheet h2{margin:12px 0 18px;font-size:24px;font-weight:700;letter-spacing:-.02em}
+.sheet p.lead{margin:-8px 0 18px;font-size:15px;line-height:1.45;color:var(--label2)}
+.sheet .stack{display:grid;gap:10px}
+.sheet .section-label{margin:22px 4px 8px;font-size:13px;font-weight:600;color:var(--label2)}
+.field{display:block;padding:10px 16px;border-radius:16px;background:var(--fill)}
+.field span{display:block;font-size:12px;font-weight:500;color:var(--label2)}
+.field input{width:100%;padding:3px 0 1px;border:0;background:none;font-size:17px}
+.row{display:flex;align-items:center;gap:12px}
+.qty-row{justify-content:space-between;padding:8px 8px 8px 16px;border-radius:16px;background:var(--fill)}
+.qty-row .stepper{display:flex;background:var(--card);animation:none}
+.qty-row .stepper button{width:44px}
+.qty-row .stepper output{min-width:28px;font-size:17px}
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.cat-grid .chip{height:46px;border-radius:15px;justify-content:flex-start}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:54px;border-radius:17px;font-size:17px;font-weight:600;transition:transform .4s var(--spring),opacity .2s}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--pink);color:#fff;box-shadow:0 12px 26px -12px rgba(216,57,149,.85)}
+.btn.secondary{background:var(--sky-soft);color:var(--sky)}
+.btn.plain{height:46px;color:var(--sky);font-weight:500}
+.btn.danger{background:rgba(255,59,48,.09);color:#FF3B30}
+.btn svg{width:20px;height:20px}
+.note{padding:14px 16px;border-radius:16px;background:var(--fill);font-size:14px;line-height:1.5;color:var(--label2)}
+.note b{color:var(--label)}
+.note.pink{background:var(--pink-soft)}
+.code{font:600 13px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.02em;color:var(--label2);word-break:break-all}
+.steps{margin:0;padding-left:20px}
+.steps li{margin:4px 0}
+
+/* ───────────────────────── Toast (ako Dynamic Island) ───────────────────────── */
+.toast{position:fixed;top:calc(env(safe-area-inset-top) + 10px);left:50%;z-index:70;display:flex;align-items:center;gap:10px;max-width:calc(100% - 28px);min-height:46px;
+  padding:8px 8px 8px 18px;border-radius:23px;background:rgba(10,12,16,.92);color:#fff;font-size:15px;font-weight:500;
+  -webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);box-shadow:0 14px 34px -12px rgba(0,0,0,.5);
+  transform:translate(-50%,-160%) scale(.9);transition:transform .55s var(--spring)}
+.toast.on{transform:translate(-50%,0) scale(1)}
+.toast .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.toast .t small{color:rgba(255,255,255,.55);font-size:14px;margin-left:4px}
+.toast button{flex:none;height:30px;padding:0 12px;border-radius:15px;background:rgba(255,255,255,.12);color:#FF7CC4;font-weight:600;font-size:14px}
+.toast:not(.has-action){padding-right:18px}
+
+/* ───────────────────────── Úvodná obrazovka ───────────────────────── */
+.onboard{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;overflow-y:auto;
+  padding:calc(env(safe-area-inset-top) + 28px) 24px calc(env(safe-area-inset-bottom) + 28px)}
+body.onboarding .app,body.onboarding .nav,body.onboarding .composer{display:none}
+.ob{width:100%;max-width:380px;text-align:center}
+.ob > *{animation:rise .8s var(--spring) both}
+.ob > :nth-child(2){animation-delay:.06s}.ob > :nth-child(3){animation-delay:.12s}.ob > :nth-child(4){animation-delay:.18s}.ob > :nth-child(5){animation-delay:.24s}.ob > :nth-child(6){animation-delay:.3s}
+@keyframes rise{from{opacity:0;transform:translateY(24px) scale(.98)}}
+.ob .appicon{width:100px;height:100px;margin:0 auto 24px;filter:drop-shadow(0 22px 30px rgba(216,57,149,.35))}
+.ob h1{margin:0 0 10px;font-size:34px;font-weight:700;letter-spacing:-.025em}
+.ob p{margin:0 0 28px;font-size:17px;line-height:1.45;color:var(--label2)}
+.ob .stack{display:grid;gap:10px;text-align:left}
+
+/* Konfety */
+.confetti{position:fixed;left:50%;top:42%;z-index:65;pointer-events:none}
+.confetti i{position:absolute;width:8px;height:13px;border-radius:2px;animation:burst 1.4s cubic-bezier(.12,.7,.3,1) forwards}
+@keyframes burst{0%{transform:translate(0,0) rotate(0) scale(.5);opacity:1}80%{opacity:1}100%{transform:translate(var(--x),var(--y)) rotate(var(--r)) scale(1);opacity:0}}
+
+/* ───────────────────────── Plynulé presuny (View Transitions) ───────────────────────── */
+::view-transition-old(root),::view-transition-new(root){animation:none}
+::view-transition-group(*){animation-duration:.46s;animation-timing-function:var(--spring)}
+::view-transition-new(*):only-child{animation:vt-in .42s var(--spring) both}
+::view-transition-old(*):only-child{animation:vt-out .24s var(--ease) both}
+@keyframes vt-in{from{opacity:0;transform:scale(.9) translateY(8px)}}
+@keyframes vt-out{to{opacity:0;transform:scale(.94)}}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  ::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}
+}
+</style>
+</head>
+<body>
+
+<div class="aurora" aria-hidden="true"><i class="b1"></i><i class="b2"></i><i class="b3"></i><div class="flutes"></div></div>
+
+<header class="nav">
+  <div class="nav-inner">
+    <div class="nav-title">Nákup</div>
+    <button class="icon-btn" id="shareBtn" aria-label="Pozvať rodinu">
+      <svg class="i" viewBox="0 0 24 24"><path d="M8 9.5H7a2 2 0 0 0-2 2V19a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7.5a2 2 0 0 0-2-2h-1"/><path d="M12 14V3M8.5 6.5 12 3l3.5 3.5"/></svg>
+    </button>
+    <button class="icon-btn me-btn" id="meBtn" aria-label="Nastavenia">?</button>
+  </div>
+</header>
+
+<main class="app">
+  <section class="hero">
+    <h1 class="large-title" id="largeTitle">Nákup</h1>
+    <div class="meta">
+      <span class="status" id="status"><i></i><b>Pripájam…</b></span>
+      <span id="summary"></span>
+    </div>
+    <div class="people" id="people"></div>
+    <div class="install" id="installCard" hidden>
+      <div class="grow"><b>Pridaj si Nákup na plochu</b>Otvorí sa ako appka, bez prehliadača.</div>
+      <button class="mini-btn" id="installHow">Ako?</button>
+      <button class="x" id="installX" aria-label="Zavrieť"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+  </section>
+
+  <div id="list"></div>
+
+  <div class="empty" id="empty" hidden>
+    <svg class="art" viewBox="0 0 120 120" aria-hidden="true">
+      <defs>
+        <linearGradient id="eg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0593C6"/><stop offset="1" stop-color="#D83995"/></linearGradient>
+      </defs>
+      <rect x="6" y="6" width="108" height="108" rx="30" fill="url(#eg)"/>
+      <path d="M40 48h40l-3.5 38a5 5 0 0 1-5 4.5h-23a5 5 0 0 1-5-4.5L40 48z" fill="#FCFFFF"/>
+      <path d="M50 48v-4a10 10 0 0 1 20 0v4" fill="none" stroke="#FCFFFF" stroke-width="5" stroke-linecap="round"/>
+      <path d="M50.5 69l7 7 12-13" fill="none" stroke="#D83995" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <h3 id="emptyTitle">Zoznam je prázdny</h3>
+    <p id="emptyText">Napíš dole, čo treba kúpiť. Všetci v rodine to uvidia hneď.</p>
+  </div>
+
+  <section class="done-section" id="done" hidden>
+    <div class="done-head">
+      <button class="done-toggle" id="doneToggle">
+        <svg class="i" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+        Kúpené <span class="n" id="doneCount">0</span>
+      </button>
+      <button class="clear-btn" id="clearDone">Vymazať</button>
+    </div>
+    <div class="card" id="doneCard"></div>
+  </section>
+</main>
+
+<div class="composer" id="composer">
+  <div class="panel" id="panel">
+    <div id="suggWrap">
+      <div class="panel-label" id="suggLabel">Často kupujete</div>
+      <div class="chips sugg" id="sugg"></div>
+    </div>
+    <div class="panel-label">Kategória</div>
+    <div class="chips cats" id="cats"></div>
+  </div>
+  <form class="bar" id="addForm" autocomplete="off">
+    <input id="addInput" type="text" placeholder="Pridať položku" maxlength="100" enterkeyhint="done" autocapitalize="sentences" aria-label="Nová položka">
+    <div class="stepper" id="draftStepper">
+      <button type="button" data-d="-1" aria-label="Menej">−</button>
+      <output id="draftQty">1</output>
+      <button type="button" data-d="1" aria-label="Viac">+</button>
+    </div>
+    <button class="add-btn" id="addBtn" type="submit" aria-label="Pridať">
+      <svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
+  </form>
+</div>
+
+<div class="backdrop" id="backdrop"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true">
+  <div class="sheet-head" id="sheetHead"><div class="grabber"></div></div>
+  <div id="sheetBody"></div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"><span class="t" id="toastText"></span><button id="toastBtn" hidden>Späť</button></div>
+
+<div class="onboard" id="onboard" hidden>
+  <div class="ob">
+    <svg class="appicon" viewBox="0 0 120 120" aria-hidden="true">
+      <defs><linearGradient id="og" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0593C6"/><stop offset="1" stop-color="#D83995"/></linearGradient></defs>
+      <rect width="120" height="120" rx="27" fill="url(#og)"/>
+      <path d="M38 46h44l-3.8 41a5.5 5.5 0 0 1-5.5 5H47.3a5.5 5.5 0 0 1-5.5-5L38 46z" fill="#FCFFFF"/>
+      <path d="M49 46v-4.5a11 11 0 0 1 22 0V46" fill="none" stroke="#FCFFFF" stroke-width="5.5" stroke-linecap="round"/>
+      <path d="M49.5 69l7.5 7.5 13.5-14.5" fill="none" stroke="#D83995" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <h1 id="obTitle">Spoločný nákup</h1>
+    <p id="obText">Jeden zoznam pre celú rodinu. Pridávajte, čo treba kúpiť, a odškrtávajte, čo už máte. Všetci to uvidia hneď.</p>
+    <div class="stack">
+      <label class="field"><span>Tvoje meno</span><input id="obName" maxlength="30" placeholder="napr. Maroš" autocomplete="given-name" enterkeyhint="go"></label>
+      <label class="field" id="obLinkField" hidden><span>Odkaz od rodiny</span><input id="obLink" placeholder="Vlož odkaz z WhatsAppu" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+    </div>
+    <div class="stack" style="margin-top:18px">
+      <button class="btn primary" id="obGo">Vytvoriť nový zoznam</button>
+      <button class="btn plain" id="obSwitch">Mám odkaz od rodiny</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* ═════════════════════════ Pomocníci ═════════════════════════ */
+const $ = (s, r = document) => r.querySelector(s);
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+const LS = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  del(k) { try { localStorage.removeItem(k); } catch {} }
+};
+const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim();
+const keyOf = s => norm(s).replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80) || 'x';
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const plural = (n, a, b, c) => n === 1 ? a : (n >= 2 && n <= 4 ? b : c);
+const cap = s => s.charAt(0).toLocaleUpperCase('sk') + s.slice(1);
+
+/* Jemná haptika: Android cez vibrate, iPhone (iOS 18+) cez skrytý prepínač */
+const haptic = (() => {
+  let lbl = null;
+  return () => {
+    try {
+      if (navigator.vibrate) { navigator.vibrate(8); return; }
+      if (!isIOS) return;
+      const a = document.activeElement;
+      if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA')) return; // nezatváraj klávesnicu
+      if (!lbl) {
+        lbl = document.createElement('label'); lbl.setAttribute('aria-hidden', 'true'); lbl.style.display = 'none';
+        const i = document.createElement('input'); i.type = 'checkbox'; i.setAttribute('switch', ''); i.tabIndex = -1;
+        lbl.appendChild(i); document.body.appendChild(lbl);
+      }
+      lbl.click();
+    } catch {}
+  };
+})();
+
+/* ═════════════════════════ Kategórie ═════════════════════════ */
+const CATS = [
+  { id: 'ovocie',    name: 'Ovocie a zelenina', e: '🥦' },
+  { id: 'pecivo',    name: 'Pečivo',            e: '🥖' },
+  { id: 'mliecne',   name: 'Mliečne a vajcia',  e: '🥛' },
+  { id: 'maso',      name: 'Mäso a ryby',       e: '🥩' },
+  { id: 'trvanlive', name: 'Trvanlivé',         e: '🥫' },
+  { id: 'mrazene',   name: 'Mrazené',           e: '🧊' },
+  { id: 'napoje',    name: 'Nápoje',            e: '🧃' },
+  { id: 'sladkosti', name: 'Sladkosti a snacky',e: '🍫' },
+  { id: 'drogeria',  name: 'Drogéria',          e: '🧴' },
+  { id: 'domacnost', name: 'Domácnosť',         e: '🧽' },
+  { id: 'ine',       name: 'Ostatné',           e: '🛒' }
+];
+const CAT = Object.fromEntries(CATS.map(c => [c.id, c]));
+
+/* Odhad kategórie podľa slova (bez diakritiky; "=slovo" = presná zhoda) */
+const GUESS = [
+  ['domacnost', ['na pranie','prasok na','praci','avivaz','=jar','saponat','cistic','cistiaci','=wc','savo','domestos','alobal','folia','vrecia','vrecka na','odpadk','baterk','ziarovk','sviec','servitk','utierk','hubk','handr','kapsul','tablety do','do umyvack','leskidl','osviezovac','zapalovac','zapalk']],
+  ['drogeria',  ['sampon','mydl','zubn','kefk','pasta na zuby','deodorant','dezodorant','toaletn','vreckovk','krem','sprchov','=gel','holiac','ziletk','vlozk','tampon','plienk','vatov','vlhcen','parfum','kondicioner','balzam','opalovac','nivea','=lieky','naplast','ustna voda','dental']],
+  ['trvanlive', ['do pecen','prasok do','mleta paprik','korenie','koreni','kurkum','cestovin','spaget','penne','makaron','fusill','tagliatell','ryz','=muka','muky','hladk','polohrub','cukor','=sol','soli','olej','ocot','konzerv','fazula','sosovic','cicer','kecup','horcic','majonez','tatarsk','dresing','omack','polievk','bujon','droz','struhank','ovsen','vlocky','musli','granol','kukuricne lupienk','=med','dzem','lekvar','nutel','arasid','=caj','kava','kavu','kakao','tuniak','sardink','oliv','pretlak','passata','kokos','instant','vanilk','skoric','=bazalk','oregan']],
+  ['napoje',    ['=voda','vody','vodu','mineralk','dzus','must','limonad','cola','kofol','pivo','piva','=vino','vina','sirup','energet','tonic','sprite','fanta','rajec','budis','mattoni','ladovy caj','ice tea','=sok']],
+  ['mrazene',   ['mrazen','zmrzlin','nanuk','hranolk','pizza','pizzu','listkove cesto','=lad','kocky ladu']],
+  ['sladkosti', ['cokolad','susienk','keks','cukrik','gumen','haribo','chips','cips','lupienk','tycink','oriesk','orech','popcorn','horalk','studentsk','oplat','oblat','=mila','kinder','sladk','=torta','tortu','muffin','tic tac','zuvack','lentilk','margot','kolky']],
+  ['mliecne',   ['mliek','mlieka','syr','masl','jogurt','smotan','tvaroh','bryndz','kefir','acidk','mozzarel','parmez','eidam','niva','vajc','vajic','zakys','pudink','mascarpone','cottage','ricott','=feta','termix','lucin','emental','gouda','cheddar','skyr','margarin','rama']],
+  ['pecivo',    ['chlieb','chleb','chlebik','rozok','rozk','bagel','baget','toast','kaiser','pecivo','croissant','loupak','buchta','buchty','kolac','tortil','zeml','vianock','pagac','strudl','=wrap','sendvic','bulk','knedl']],
+  ['maso',      ['maso','masa','kurac','kuraci','=kura','bravc','hovad','mlete','sunk','salam','parky','parok','klobas','slanin','rezn','steak','=ryba','ryby','losos','tresk','krevet','morcac','pecen','spekac','tlacenk','debrecin','udenin','krkovic','stehn','prsia','=pstruh','kaprik','=kapor','=file','gyros']],
+  ['ovocie',    ['jablk','jabl','banan','hrusk','pomaranc','citron','limet','mandarin','hrozn','jahod','cucoriedk','malin','kiwi','ananas','melon','broskyn','marhul','slivk','avokad','granatov','paradajk','rajcin','uhork','paprik','cibul','cesnak','mrkv','zemiak','kapust','salat','brokolic','karfiol','spenat','cuket','baklazan','=huby','hub','sampinon','petrzlen','zeler','redkvick','kukuric','pazitk','bylink','zazvor','tekvic','rebarbor','cvikl','repa','zelenin','ovoc','batat','fazulk','=hrasok','klicky','rukol','datl','figy','=pomelo','grep','nektarink','ceresn','visn']]
+];
+function guessCat(name) {
+  const n = norm(name); if (!n) return null;
+  const hay = ' ' + n.replace(/[^a-z0-9]+/g, ' ') + ' ';
+  for (const [cat, keys] of GUESS) {
+    for (const k of keys) {
+      if (k[0] === '=' ? hay.includes(' ' + k.slice(1) + ' ') : hay.includes(' ' + k)) return cat;
+    }
+  }
+  return null;
+}
+
+/* „2 mlieka“, „mlieko x2“, „mlieko 3ks“ → množstvo */
+function parseDraft(text) {
+  let t = String(text || '').replace(/\s+/g, ' ').trim(); let qty = null; let m;
+  const unit = /^(g|kg|dkg|l|ml|dl|cl|%)\b/i;
+  if ((m = t.match(/^(\d{1,2})\s*(?:x|×|ks)?\s+(.+)$/i)) && !unit.test(m[2])) { qty = +m[1]; t = m[2]; }
+  else if ((m = t.match(/^(.+?)\s+(?:x|×)?\s*(\d{1,2})\s*(?:x|×|ks)?$/i)) && !/\d\s*(g|kg|dkg|l|ml|dl|%)$/i.test(t)) { qty = +m[2]; t = m[1]; }
+  if (qty != null) qty = Math.min(99, Math.max(1, qty));
+  return { name: t, qty };
+}
+
+/* ═════════════════════════ ID zoznamu a stav ═════════════════════════ */
+const ABC = 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+function newListId() { const a = new Uint32Array(22); crypto.getRandomValues(a); return Array.from(a, n => ABC[n % ABC.length]).join(''); }
+function idFromText(t) {
+  t = String(t || '').trim();
+  const m = t.match(/#([A-Za-z0-9_-]{16,64})\b/) || t.match(/^([A-Za-z0-9_-]{16,64})$/);
+  return m ? m[1] : null;
+}
+const shareUrl = () => location.origin + location.pathname + '#' + listId;
+
+let listId = idFromText(location.hash) || LS.get('nakup:list', null);
+let me = LS.get('nakup:name', '');
+let store = null;
+let ITEMS = [];
+let HIST = [];
+let doneOpen = LS.get('nakup:doneOpen', false);
+let firstData = true;
+let lastSig = '';
+const els = new Map();
+const groups = new Map();
+const pending = new Map();
+
+/* ═════════════════════════ Úložisko: Firebase alebo demo ═════════════════════════ */
+const FB_VERSION = '13.2.0';
+function hasConfig() {
+  const c = window.FIREBASE_CONFIG;
+  return !!(c && c.apiKey && c.projectId && !/^SEM_/i.test(c.apiKey));
+}
+
+async function firebaseStore(cfg, id) {
+  const base = `https://www.gstatic.com/firebasejs/${FB_VERSION}/`;
+  const [{ initializeApp }, A, F] = await Promise.all([
+    import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')
+  ]);
+  const app = initializeApp(cfg);
+  const auth = A.getAuth(app);
+  let db;
+  try { db = F.initializeFirestore(app, { localCache: F.persistentLocalCache({ tabManager: F.persistentMultipleTabManager() }) }); }
+  catch { db = F.getFirestore(app); }
+  await auth.authStateReady();
+  if (!auth.currentUser) {
+    try { await A.signInAnonymously(auth); }
+    catch (e) { if (navigator.onLine) throw e; }
+  }
+  const items = F.collection(db, 'lists', id, 'items');
+  const hist = F.collection(db, 'lists', id, 'history');
+  return {
+    kind: 'firebase',
+    subscribe(onItems, onHistory, onStatus) {
+      F.onSnapshot(items, { includeMetadataChanges: true }, snap => {
+        const remote = snap.docChanges().filter(c => c.type === 'added' && !c.doc.metadata.hasPendingWrites).map(c => c.doc.id);
+        onItems(snap.docs.map(d => ({ id: d.id, ...d.data() })), remote);
+        onStatus(!navigator.onLine || snap.metadata.fromCache ? 'offline' : snap.metadata.hasPendingWrites ? 'saving' : 'live');
+      }, err => { console.error(err); onStatus('error'); });
+      F.onSnapshot(hist, snap => onHistory(snap.docs.map(d => ({ key: d.id, ...d.data() }))), err => console.warn(err));
+    },
+    newId: () => F.doc(items).id,
+    put: (iid, data) => F.setDoc(F.doc(items, iid), data),
+    update: (iid, patch) => F.updateDoc(F.doc(items, iid), patch),
+    remove(ids) { const b = F.writeBatch(db); ids.forEach(i => b.delete(F.doc(items, i))); return b.commit(); },
+    restore(list) { const b = F.writeBatch(db); list.forEach(({ id: i, ...d }) => b.set(F.doc(items, i), d)); return b.commit(); },
+    touch: (name, cat) => F.setDoc(F.doc(hist, keyOf(name)), { name, cat, count: F.increment(1), last: Date.now() }, { merge: true }),
+    setCat: (name, cat) => F.setDoc(F.doc(hist, keyOf(name)), { name, cat }, { merge: true }),
+    forget: key => F.deleteDoc(F.doc(hist, key)),
+    putHist: h => { const { key, ...d } = h; return F.setDoc(F.doc(hist, key), d); }
+  };
+}
+
+function localStore(id, mode) {
+  const K = 'nakup:demo:' + id, KH = 'nakup:demoh:' + id;
+  let items = LS.get(K, null), hist = LS.get(KH, null);
+  if (!items) { const s = demoSeed(); items = s.items; hist = s.hist; }
+  let cb = null;
+  const emit = (remote = []) => {
+    LS.set(K, items); LS.set(KH, hist);
+    if (cb) queueMicrotask(() => { cb.i(items.map(x => ({ ...x })), remote); cb.h(hist.map(x => ({ ...x }))); });
+  };
+  const ok = () => Promise.resolve();
+  const H = (name) => hist.find(h => h.key === keyOf(name));
+  return {
+    kind: 'local',
+    subscribe(onItems, onHistory, onStatus) {
+      cb = { i: onItems, h: onHistory }; onStatus(mode); emit();
+      if (mode === 'demo' && !items.some(i => norm(i.name) === 'kava')) {
+        setTimeout(() => { // ukážka: niekto z rodiny niečo pridá
+          const iid = 'demo-kava'; if (items.some(i => i.id === iid)) return;
+          items.push({ id: iid, name: 'Káva', qty: 1, cat: 'trvanlive', done: false, by: 'Mama', created: Date.now(), doneAt: null, doneBy: '' });
+          emit([iid]);
+        }, 6500);
+      }
+    },
+    newId: () => 'l' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36),
+    put(iid, data) { items = items.filter(i => i.id !== iid).concat({ id: iid, ...data }); emit(); return ok(); },
+    update(iid, patch) { items = items.map(i => i.id === iid ? { ...i, ...patch } : i); emit(); return ok(); },
+    remove(ids) { items = items.filter(i => !ids.includes(i.id)); emit(); return ok(); },
+    restore(list) { const ids = list.map(x => x.id); items = items.filter(i => !ids.includes(i.id)).concat(list); emit(); return ok(); },
+    touch(name, cat) { const h = H(name); if (h) { h.count++; h.cat = cat; h.last = Date.now(); h.name = name; } else hist.push({ key: keyOf(name), name, cat, count: 1, last: Date.now() }); emit(); return ok(); },
+    setCat(name, cat) { const h = H(name); if (h) h.cat = cat; emit(); return ok(); },
+    forget(key) { hist = hist.filter(h => h.key !== key); emit(); return ok(); },
+    putHist(h) { hist = hist.filter(x => x.key !== h.key).concat(h); emit(); return ok(); }
+  };
+}
+
+function demoSeed() {
+  const t = Date.now();
+  const mk = (name, cat, qty, by, done) => ({ id: 'd' + Math.random().toString(36).slice(2, 9), name, cat, qty, by, done: !!done, created: t - Math.random() * 3e6, doneAt: done ? t - 6e5 : null, doneBy: done ? by : '' });
+  const items = [
+    mk('Banány', 'ovocie', 1, 'Mama'), mk('Paradajky', 'ovocie', 4, 'Tato'),
+    mk('Rožky', 'pecivo', 6, 'Mama'), mk('Mlieko', 'mliecne', 2, 'Maroš'),
+    mk('Jogurt jahodový', 'mliecne', 3, 'Sestra'), mk('Šampón', 'drogeria', 1, 'Tato'),
+    mk('Chlieb', 'pecivo', 1, 'Mama', true), mk('Maslo', 'mliecne', 1, 'Tato', true)
+  ];
+  const names = [['Mlieko','mliecne',14],['Rožky','pecivo',12],['Banány','ovocie',9],['Chlieb','pecivo',9],['Maslo','mliecne',7],['Vajcia','mliecne',6],['Syr','mliecne',5],['Jablká','ovocie',5],['Šunka','maso',4],['Kofola','napoje',4],['Toaletný papier','drogeria',3],['Cestoviny','trvanlive',3]];
+  const hist = names.map(([name, cat, count]) => ({ key: keyOf(name), name, cat, count, last: t }));
+  return { items, hist };
+}
+
+/* ═════════════════════════ Vykresľovanie ═════════════════════════ */
+const vtName = (p, id) => p + String(id).replace(/[^A-Za-z0-9_-]/g, '_');
+const COLORS = ['#0593C6', '#D83995', '#0A6E8F', '#8E5CF7', '#F0607A', '#E8A33D', '#1BA784'];
+const colorOf = name => { let h = 0; for (const ch of norm(name)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return COLORS[h % COLORS.length]; };
+const initials = name => { const p = String(name).trim().split(/\s+/); return ((p[0] || '?')[0] + (p[1] ? p[1][0] : '')).toUpperCase(); };
+
+function buildItem(id) {
+  const it = el('div', 'item');
+  it.dataset.id = id;
+  it.style.viewTransitionName = vtName('i-', id);
+  it.innerHTML = '<button class="check" role="checkbox"><svg viewBox="0 0 26 26" aria-hidden="true"><circle class="ring" cx="13" cy="13" r="11.2"/><path class="tick" d="M8.3 13.4l3.2 3.2 6.3-6.9"/></svg></button><button class="body"><div class="name"><span class="txt"></span></div><div class="sub"></div></button><span class="qty"></span>';
+  it.querySelector('.check').setAttribute('aria-label', 'Kúpené');
+  return it;
+}
+function itemEl(item) {
+  let e = els.get(item.id);
+  if (!e) { e = buildItem(item.id); els.set(item.id, e); }
+  e.classList.toggle('done', !!item.done);
+  e.classList.toggle('checking', pending.has(item.id));
+  e.classList.remove('unchecking');
+  e.querySelector('.txt').textContent = item.name;
+  e.querySelector('.check').setAttribute('aria-checked', item.done ? 'true' : 'false');
+  const q = e.querySelector('.qty'); q.textContent = '×' + (item.qty || 1); q.hidden = !(item.qty > 1);
+  e.querySelector('.sub').textContent = item.done ? (item.doneBy ? 'kúpil(a) ' + item.doneBy : '') : (item.by || '');
+  return e;
+}
+function groupEl(c) {
+  let g = groups.get(c.id);
+  if (!g) {
+    g = el('section', 'group');
+    g.innerHTML = '<h2 class="group-title"><span class="emoji"></span><span class="gname"></span><span class="count"></span></h2><div class="card"></div>';
+    g.querySelector('.emoji').textContent = c.e;
+    g.querySelector('.gname').textContent = c.name;
+    g.querySelector('.group-title').style.viewTransitionName = 'g-' + c.id;
+    g.querySelector('.card').style.viewTransitionName = 'c-' + c.id;
+    groups.set(c.id, g);
+  }
+  return g;
+}
+function placeIn(parent, children) {
+  let prev = null;
+  for (const c of children) {
+    const want = prev ? prev.nextSibling : parent.firstChild;
+    if (c !== want) parent.insertBefore(c, want);
+    prev = c;
+  }
+  while (prev && prev.nextSibling) prev.nextSibling.remove();
+  if (!prev) parent.textContent = '';
+}
+
+function paint() {
+  const open = ITEMS.filter(i => !i.done);
+  const done = ITEMS.filter(i => i.done).sort((a, b) => (b.doneAt || 0) - (a.doneAt || 0));
+  const used = new Set();
+  const byCat = new Map();
+  for (const i of open) { const c = CAT[i.cat] ? i.cat : 'ine'; if (!byCat.has(c)) byCat.set(c, []); byCat.get(c).push(i); }
+
+  const gEls = [];
+  for (const c of CATS) {
+    const arr = byCat.get(c.id);
+    if (!arr) { groups.delete(c.id); continue; }
+    const g = groupEl(c);
+    g.querySelector('.count').textContent = arr.length;
+    arr.sort((a, b) => (a.created || 0) - (b.created || 0));
+    placeIn(g.querySelector('.card'), arr.map(i => { used.add(i.id); return itemEl(i); }));
+    gEls.push(g);
+  }
+  placeIn($('#list'), gEls);
+
+  const dsec = $('#done');
+  dsec.hidden = done.length === 0;
+  dsec.classList.toggle('open', doneOpen);
+  $('#doneCount').textContent = done.length;
+  $('#doneToggle').style.viewTransitionName = 'done-h';
+  $('#doneCard').style.viewTransitionName = 'done-c';
+  placeIn($('#doneCard'), doneOpen ? done.map(i => { used.add(i.id); return itemEl(i); }) : []);
+
+  for (const [iid, e] of els) if (!used.has(iid)) { e.remove(); els.delete(iid); }
+
+  // prázdny stav
+  const empty = $('#empty');
+  empty.hidden = open.length > 0;
+  if (!open.length) {
+    $('#emptyTitle').textContent = done.length ? 'Všetko kúpené!' : 'Zoznam je prázdny';
+    $('#emptyText').textContent = done.length ? 'Paráda. Kúpené položky môžeš dole vymazať.' : 'Napíš dole, čo treba kúpiť. Všetci v rodine to uvidia hneď.';
+  }
+  empty.style.viewTransitionName = 'empty';
+
+  // súhrn
+  const n = open.length, d = done.length;
+  $('#summary').textContent = n ? `${n} ${plural(n, 'položka', 'položky', 'položiek')}${d ? ` · ${d} ${plural(d, 'kúpená', 'kúpené', 'kúpených')}` : ''}` : '';
+  paintPeople();
+}
+
+function paintPeople() {
+  const names = [me, ...ITEMS.map(i => i.by)].filter(Boolean);
+  const uniq = [...new Map(names.map(n => [norm(n), n])).values()];
+  const box = $('#people');
+  const sig = uniq.join('|');
+  if (box.dataset.sig === sig) return;
+  box.dataset.sig = sig; box.textContent = '';
+  uniq.slice(0, 5).forEach((n, idx) => {
+    const a = el('span', 'av', initials(n)); a.style.background = colorOf(n); a.style.animationDelay = idx * 50 + 'ms'; a.title = n; box.appendChild(a);
+  });
+  if (uniq.length > 5) box.appendChild(el('span', 'av more', '+' + (uniq.length - 5)));
+  box.appendChild(el('span', 'who', uniq.length > 1 ? 'nakupujete spolu' : 'pozvi rodinu cez ikonu hore'));
+}
+
+function render(animate = true) {
+  const sig = ITEMS.map(i => [i.id, i.name, i.qty, i.cat, i.done, i.by, i.doneBy].join('\u0001')).join('\u0002') + '|' + doneOpen + '|' + me;
+  if (sig === lastSig) return;
+  lastSig = sig;
+  if (animate && !reduced && document.startViewTransition && document.visibilityState === 'visible' && !document.body.classList.contains('onboarding')) {
+    try { document.startViewTransition(paint); return; } catch {}
+  }
+  paint();
+}
+
+/* ═════════════════════════ Akcie ═════════════════════════ */
+const fail = e => { console.error(e); toast('Nepodarilo sa uložiť zmenu'); };
+function local(id, patch) { ITEMS = ITEMS.map(i => i.id === id ? { ...i, ...patch } : i); }
+
+function commit(id, patch) {
+  local(id, patch); render();
+  store.update(id, patch).catch(fail);
+}
+
+function toggle(id) {
+  const it = ITEMS.find(x => x.id === id); if (!it) return;
+  const e = els.get(id);
+  if (pending.has(id)) { clearTimeout(pending.get(id)); pending.delete(id); e && e.classList.remove('checking'); return; }
+  haptic();
+  if (!it.done) {
+    e && e.classList.add('checking');
+    const wasLast = ITEMS.filter(i => !i.done).length === 1;
+    pending.set(id, setTimeout(() => {
+      pending.delete(id);
+      commit(id, { done: true, doneAt: Date.now(), doneBy: me });
+      if (wasLast && ITEMS.filter(i => !i.done).length === 0) setTimeout(celebrate, 250);
+    }, 560));
+  } else {
+    e && e.classList.add('unchecking');
+    commit(id, { done: false, doneAt: null, doneBy: '' });
+  }
+}
+
+function addItem(rawName, cat, qty) {
+  let name = cap(String(rawName).replace(/\s+/g, ' ').trim()).slice(0, 100);
+  if (!name) return false;
+  qty = Math.min(99, Math.max(1, qty || 1));
+  const found = ITEMS.find(i => norm(i.name) === norm(name));
+  if (found && !found.done) {
+    const q = Math.min(99, (found.qty || 1) + qty);
+    commit(found.id, { qty: q });
+    toast(`${found.name} už je v zozname`, { sub: `teraz ×${q}` });
+    flash(found.id);
+    return true;
+  }
+  if (!cat) cat = histCat(name) || guessCat(name) || 'ine';
+  if (found && found.done) {
+    commit(found.id, { done: false, doneAt: null, doneBy: '', qty, cat, by: me, created: Date.now() });
+  } else {
+    const id = store.newId();
+    const data = { name, qty, cat, done: false, by: me, created: Date.now(), doneAt: null, doneBy: '' };
+    ITEMS = ITEMS.concat({ id, ...data });
+    render();
+    store.put(id, data).catch(fail);
+    requestAnimationFrame(() => setTimeout(() => { const e = els.get(id); e && e.scrollIntoView({ block: 'nearest', behavior: reduced ? 'auto' : 'smooth' }); }, 80));
+  }
+  store.touch(name, cat).catch(() => {});
+  return true;
+}
+function histCat(name) { const h = HIST.find(x => x.key === keyOf(name)); return h && CAT[h.cat] ? h.cat : null; }
+
+function flash(id) { const e = els.get(id); if (!e) return; e.classList.remove('flash'); void e.offsetWidth; e.classList.add('flash'); e.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+
+function clearDone() {
+  const done = ITEMS.filter(i => i.done); if (!done.length) return;
+  openSheet(body => {
+    body.append(el('h2', null, `Vymazať ${done.length} ${plural(done.length, 'kúpenú položku', 'kúpené položky', 'kúpených položiek')}?`));
+    body.append(el('p', 'lead', 'Zmiznú zo zoznamu všetkým v rodine.'));
+    const st = el('div', 'stack');
+    const yes = el('button', 'btn danger', 'Vymazať');
+    const no = el('button', 'btn plain', 'Zrušiť');
+    yes.onclick = () => {
+      closeSheet();
+      const backup = done.map(i => ({ ...i }));
+      ITEMS = ITEMS.filter(i => !i.done); render();
+      store.remove(backup.map(i => i.id)).catch(fail);
+      toast(`Vymazané: ${backup.length}`, { action: 'Späť', onAction: () => { ITEMS = ITEMS.concat(backup); render(); store.restore(backup).catch(fail); } });
+    };
+    no.onclick = closeSheet;
+    st.append(yes, no); body.append(st);
+  });
+}
+
+function deleteItem(id) {
+  const it = ITEMS.find(i => i.id === id); if (!it) return;
+  const backup = { ...it };
+  ITEMS = ITEMS.filter(i => i.id !== id); render();
+  store.remove([id]).catch(fail);
+  toast(`Vymazané: ${it.name}`, { action: 'Späť', onAction: () => { ITEMS = ITEMS.concat(backup); render(); store.restore([backup]).catch(fail); } });
+}
+
+function share() {
+  const url = shareUrl();
+  const data = { title: 'Spoločný nákup', text: 'Pridaj sa do nášho nákupného zoznamu 🛒', url };
+  if (navigator.share) { navigator.share(data).catch(e => { if (!e || e.name !== 'AbortError') copy(url); }); return; }
+  copy(url);
+}
+function copy(text) {
+  (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(
+    () => toast('Odkaz skopírovaný', { sub: 'vlož ho do WhatsAppu' }),
+    () => openSheet(b => {
+      b.append(el('h2', null, 'Odkaz na zoznam'));
+      b.append(el('p', 'lead', 'Podrž text a skopíruj ho, potom ho vlož do WhatsAppu.'));
+      const n = el('div', 'note'); const c = el('div', 'code', text); c.style.userSelect = c.style.webkitUserSelect = 'all'; n.append(c); b.append(n);
+      const ok = el('button', 'btn primary', 'Hotovo'); ok.style.marginTop = '18px'; ok.onclick = closeSheet; b.append(ok);
+    })
+  );
+}
+
+/* Konfety, keď je všetko kúpené */
+function celebrate() {
+  if (reduced) return;
+  haptic();
+  const box = el('div', 'confetti');
+  const cols = ['#0593C6', '#D83995', '#7CCBEA', '#F08CC4', '#FCFFFF'];
+  for (let i = 0; i < 42; i++) {
+    const p = el('i');
+    const a = Math.random() * Math.PI * 2, r = 90 + Math.random() * 170;
+    p.style.setProperty('--x', Math.cos(a) * r + 'px');
+    p.style.setProperty('--y', Math.sin(a) * r * .7 + 140 + 'px');
+    p.style.setProperty('--r', (Math.random() * 720 - 360) + 'deg');
+    p.style.background = cols[i % cols.length];
+    p.style.boxShadow = '0 0 0 .5px rgba(0,0,0,.06)';
+    p.style.animationDelay = Math.random() * 90 + 'ms';
+    box.appendChild(p);
+  }
+  document.body.appendChild(box);
+  setTimeout(() => box.remove(), 1700);
+  toast('Všetko kúpené 🎉');
+}
+
+/* ═════════════════════════ Toast ═════════════════════════ */
+let toastTimer = null, toastAction = null;
+function toast(text, opt = {}) {
+  const t = $('#toast'), tx = $('#toastText'), b = $('#toastBtn');
+  tx.textContent = text;
+  if (opt.sub) { const s = el('small', null, opt.sub); tx.append(' ', s); }
+  toastAction = opt.onAction || null;
+  b.hidden = !opt.action; b.textContent = opt.action || '';
+  t.classList.toggle('has-action', !!opt.action);
+  t.classList.remove('on'); void t.offsetWidth; t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('on'), opt.action ? 5000 : 2600);
+}
+$('#toastBtn').addEventListener('click', () => { const f = toastAction; toastAction = null; $('#toast').classList.remove('on'); f && f(); });
+
+/* ═════════════════════════ Sheet ═════════════════════════ */
+let sheetClose = null;
+function openSheet(build, onClose) {
+  const body = $('#sheetBody'); body.textContent = '';
+  build(body);
+  sheetClose = onClose || null;
+  const s = $('#sheet'); s.scrollTop = 0; s.style.transform = '';
+  $('#backdrop').classList.add('on'); s.classList.add('on');
+  document.activeElement && document.activeElement.blur && document.activeElement.blur();
+}
+function closeSheet() {
+  const s = $('#sheet');
+  if (!s.classList.contains('on')) return;
+  s.classList.remove('on'); s.style.transform = ''; $('#backdrop').classList.remove('on');
+  const f = sheetClose; sheetClose = null; f && f();
+  document.activeElement && document.activeElement.blur && document.activeElement.blur();
+}
+$('#backdrop').addEventListener('click', closeSheet);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
+(() => { // potiahnutím dole zavrieť
+  const s = $('#sheet'), head = $('#sheetHead'); let y0 = null, dy = 0;
+  head.addEventListener('pointerdown', e => { y0 = e.clientY; dy = 0; s.classList.add('dragging'); head.setPointerCapture(e.pointerId); });
+  head.addEventListener('pointermove', e => { if (y0 == null) return; dy = Math.max(0, e.clientY - y0); s.style.transform = `translateY(${dy}px)`; });
+  const end = () => { if (y0 == null) return; y0 = null; s.classList.remove('dragging'); if (dy > 90) closeSheet(); else s.style.transform = ''; };
+  head.addEventListener('pointerup', end); head.addEventListener('pointercancel', end);
+})();
+
+function stepper(value, onChange) {
+  const w = el('div', 'stepper');
+  const minus = el('button', null, '−'), plus = el('button', null, '+'), out = el('output', null, value);
+  minus.type = plus.type = 'button'; minus.setAttribute('aria-label', 'Menej'); plus.setAttribute('aria-label', 'Viac');
+  const set = v => { value = Math.min(99, Math.max(1, v)); out.textContent = value; onChange(value); };
+  minus.onclick = () => set(value - 1); plus.onclick = () => set(value + 1);
+  w.append(minus, out, plus); return w;
+}
+
+function openEdit(id) {
+  const it = ITEMS.find(i => i.id === id); if (!it) return;
+  let name = it.name, qty = it.qty || 1, cat = CAT[it.cat] ? it.cat : 'ine', removed = false;
+  openSheet(body => {
+    body.append(el('h2', null, 'Upraviť položku'));
+    const st = el('div', 'stack');
+    const f = el('label', 'field'); f.append(el('span', null, 'Názov'));
+    const inp = el('input'); inp.value = name; inp.maxLength = 100; inp.enterKeyHint = 'done';
+    inp.oninput = () => { name = inp.value; }; inp.onkeydown = e => { if (e.key === 'Enter') inp.blur(); };
+    f.append(inp);
+    const qr = el('div', 'row qty-row'); qr.append(el('span', null, 'Množstvo'), stepper(qty, v => { qty = v; }));
+    st.append(f, qr); body.append(st);
+    body.append(el('div', 'section-label', 'Kategória'));
+    const grid = el('div', 'cat-grid');
+    for (const c of CATS) {
+      const b = el('button', 'chip' + (c.id === cat ? ' on' : ''));
+      b.append(el('span', null, c.e), el('span', null, c.name));
+      b.onclick = () => { cat = c.id; grid.querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x === b)); };
+      grid.append(b);
+    }
+    body.append(grid);
+    if (it.by) body.append(Object.assign(el('div', 'section-label'), { textContent: `Pridal(a): ${it.by}` }));
+    const actions = el('div', 'stack'); actions.style.marginTop = '22px';
+    const okB = el('button', 'btn primary', 'Hotovo'); okB.onclick = closeSheet;
+    const delB = el('button', 'btn danger', 'Vymazať položku'); delB.onclick = () => { removed = true; closeSheet(); deleteItem(id); };
+    actions.append(okB, delB); body.append(actions);
+  }, () => {
+    if (removed) return;
+    const cur = ITEMS.find(i => i.id === id); if (!cur) return;
+    const n = cap(name.replace(/\s+/g, ' ').trim()).slice(0, 100) || cur.name;
+    const patch = {};
+    if (n !== cur.name) patch.name = n;
+    if (qty !== cur.qty) patch.qty = qty;
+    if (cat !== cur.cat) patch.cat = cat;
+    if (Object.keys(patch).length) {
+      commit(id, patch);
+      if (patch.cat) store.setCat(n, cat).catch(() => {});
+    }
+  });
+}
+
+function installSteps(container) {
+  const ol = el('ol', 'steps');
+  const steps = isIOS
+    ? ['Otvor tento odkaz v Safari (alebo v Chrome).', 'Ťukni na ikonu Zdieľať (štvorec so šípkou).', 'Zvoľ „Pridať na plochu“ a potvrď „Pridať“.']
+    : ['Otvor tento odkaz v Chrome.', 'Ťukni na menu ⋮ vpravo hore.', 'Zvoľ „Pridať na plochu“ alebo „Inštalovať aplikáciu“.'];
+  steps.forEach(s => ol.append(el('li', null, s)));
+  container.append(ol);
+}
+
+function openSettings() {
+  openSheet(body => {
+    body.append(el('h2', null, 'Zoznam'));
+    if (store && store.kind === 'local') {
+      const n = el('div', 'note pink');
+      n.innerHTML = '<b>Demo režim.</b> Zoznam sa zatiaľ ukladá len v tomto zariadení. Keď doplníš súbor <b>config.js</b> podľa návodu, bude zdieľaný s rodinou.';
+      body.append(n); body.append(el('div', 'section-label', ''));
+    }
+    const st = el('div', 'stack');
+    const f = el('label', 'field'); f.append(el('span', null, 'Tvoje meno'));
+    const inp = el('input'); inp.value = me; inp.maxLength = 30; inp.enterKeyHint = 'done'; inp.autocomplete = 'given-name';
+    const saveName = () => { const v = inp.value.trim().slice(0, 30); if (v && v !== me) { me = v; LS.set('nakup:name', me); updateMe(); lastSig = ''; render(false); toast('Meno uložené'); } };
+    inp.onchange = saveName; inp.onkeydown = e => { if (e.key === 'Enter') inp.blur(); };
+    f.append(inp); st.append(f);
+    const inv = el('button', 'btn primary'); inv.innerHTML = '<svg class="i" viewBox="0 0 24 24"><path d="M8 9.5H7a2 2 0 0 0-2 2V19a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7.5a2 2 0 0 0-2-2h-1"/><path d="M12 14V3M8.5 6.5 12 3l3.5 3.5"/></svg>';
+    inv.append('Pozvať rodinu'); inv.onclick = share;
+    const cp = el('button', 'btn secondary', 'Skopírovať odkaz'); cp.onclick = () => copy(shareUrl());
+    st.append(inv, cp); body.append(st);
+
+    if (!standalone) {
+      body.append(el('div', 'section-label', 'Pridať na plochu'));
+      const n = el('div', 'note'); installSteps(n);
+      if (deferredInstall) {
+        const ib = el('button', 'btn secondary', 'Inštalovať appku'); ib.style.marginTop = '12px';
+        ib.onclick = async () => { deferredInstall.prompt(); deferredInstall = null; closeSheet(); };
+        n.append(ib);
+      }
+      body.append(n);
+    }
+
+    body.append(el('div', 'section-label', 'Kód zoznamu'));
+    const code = el('div', 'note'); code.append(el('div', 'code', listId));
+    code.append(el('div', null, 'Kto má odkaz, vidí a upravuje zoznam. Posielaj ho len rodine.'));
+    body.append(code);
+
+    const other = el('button', 'btn plain', 'Otvoriť iný zoznam');
+    const box = el('div', 'stack'); box.hidden = true;
+    const lf = el('label', 'field'); lf.append(el('span', null, 'Odkaz alebo kód zoznamu'));
+    const li = el('input'); li.placeholder = 'Vlož odkaz z WhatsAppu'; li.autocapitalize = 'off'; li.spellcheck = false; li.setAttribute('autocorrect', 'off');
+    lf.append(li);
+    const go = el('button', 'btn secondary', 'Otvoriť');
+    go.onclick = () => {
+      const nid = idFromText(li.value);
+      if (!nid) { toast('Toto nevyzerá ako odkaz na zoznam'); li.focus(); return; }
+      LS.set('nakup:list', nid); location.hash = nid; location.reload();
+    };
+    li.onkeydown = e => { if (e.key === 'Enter') go.click(); };
+    box.append(lf, go);
+    other.onclick = () => { box.hidden = !box.hidden; other.hidden = true; li.focus(); };
+    body.append(other, box);
+  });
+}
+
+/* ═════════════════════════ Pridávací panel ═════════════════════════ */
+const input = $('#addInput');
+const draft = { qty: 1, qtyManual: false, cat: null, catManual: false };
+
+function paintCats(cat) {
+  const box = $('#cats');
+  if (!box.childElementCount) {
+    for (const c of CATS) {
+      const b = el('button', 'chip'); b.type = 'button'; b.dataset.cat = c.id;
+      b.append(el('span', null, c.e), el('span', null, c.name));
+      b.onclick = () => {
+        if (draft.catManual && draft.cat === c.id) { draft.catManual = false; updateComposer(); return; }
+        draft.cat = c.id; draft.catManual = true; paintCats(c.id);
+      };
+      box.append(b);
+    }
+  }
+  box.querySelectorAll('.chip').forEach(b => {
+    const on = b.dataset.cat === cat;
+    if (on && !b.classList.contains('on')) b.scrollIntoView({ inline: 'center', block: 'nearest', behavior: reduced ? 'auto' : 'smooth' });
+    b.classList.toggle('on', on);
+  });
+}
+
+function suggestions(q) {
+  const openNames = new Set(ITEMS.filter(i => !i.done).map(i => norm(i.name)));
+  const nq = norm(q);
+  return HIST
+    .filter(h => !openNames.has(norm(h.name)) && (!nq || norm(h.name).startsWith(nq) || norm(h.name).includes(' ' + nq)) && norm(h.name) !== nq)
+    .sort((a, b) => (nq && norm(b.name).startsWith(nq)) - (nq && norm(a.name).startsWith(nq)) || (b.count || 0) - (a.count || 0) || (b.last || 0) - (a.last || 0))
+    .slice(0, 10);
+}
+
+function paintSugg(q) {
+  const list = suggestions(q);
+  const box = $('#sugg');
+  $('#suggWrap').hidden = !list.length;
+  $('#suggLabel').textContent = q ? 'Návrhy' : 'Často kupujete';
+  box.textContent = '';
+  for (const h of list) {
+    const b = el('button', 'chip'); b.type = 'button';
+    b.innerHTML = '<svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>';
+    b.append(el('span', null, h.name));
+    let lp = false, t = null;
+    b.addEventListener('pointerdown', () => { lp = false; t = setTimeout(() => { lp = true; forgetSugg(h); }, 600); });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => b.addEventListener(ev, () => clearTimeout(t)));
+    b.addEventListener('contextmenu', e => e.preventDefault());
+    b.onclick = () => {
+      if (lp) return;
+      const parsed = parseDraft(input.value);
+      const qty = draft.qtyManual ? draft.qty : (parsed.qty || 1);
+      b.classList.add('added');
+      addItem(h.name, CAT[h.cat] ? h.cat : null, qty);
+      input.value = ''; resetDraft();
+      setTimeout(updateComposer, 260);
+    };
+    box.append(b);
+  }
+  box.scrollLeft = 0;
+}
+function forgetSugg(h) {
+  haptic();
+  HIST = HIST.filter(x => x.key !== h.key); paintSugg(parseDraft(input.value).name);
+  store.forget(h.key).catch(() => {});
+  toast(`Odstránené z návrhov: ${h.name}`, { action: 'Späť', onAction: () => { store.putHist(h).catch(() => {}); } });
+}
+
+function resetDraft() { draft.qty = 1; draft.qtyManual = false; draft.cat = null; draft.catManual = false; }
+
+function updateComposer() {
+  const { name, qty } = parseDraft(input.value);
+  document.body.classList.toggle('has-text', !!input.value.trim());
+  if (!draft.catManual) draft.cat = name ? (histCat(name) || guessCat(name)) : null;
+  paintCats(draft.cat);
+  if (!draft.qtyManual) draft.qty = qty || 1;
+  $('#draftQty').textContent = draft.qty;
+  paintSugg(name);
+}
+
+$('#draftStepper').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  draft.qty = Math.min(99, Math.max(1, draft.qty + +b.dataset.d)); draft.qtyManual = true;
+  $('#draftQty').textContent = draft.qty;
+});
+
+// Tlačidlá v paneli nesmú zobrať fokus z poľa (inak by sa zavrela klávesnica)
+$('#composer').addEventListener('mousedown', e => { if (e.target.closest('button')) e.preventDefault(); });
+$('#composer').addEventListener('pointerdown', e => { if (e.target.closest('.bar button') && document.activeElement === input) e.preventDefault(); });
+
+$('#addForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const { name, qty } = parseDraft(input.value);
+  if (!name) { input.focus(); return; }
+  const ok = addItem(name, draft.catManual ? draft.cat : null, draft.qtyManual ? draft.qty : (qty || 1));
+  if (ok) {
+    const b = $('#addBtn'); b.classList.remove('spin'); void b.offsetWidth; b.classList.add('spin');
+    input.value = ''; resetDraft(); updateComposer();
+  }
+  input.focus();
+});
+input.addEventListener('focus', () => { document.body.classList.add('composing'); updateComposer(); });
+input.addEventListener('blur', () => setTimeout(() => { if (document.activeElement !== input) document.body.classList.remove('composing'); }, 150));
+input.addEventListener('input', updateComposer);
+input.addEventListener('keydown', e => { if (e.key === 'Escape') input.blur(); });
+
+// iPhone: klávesnica neposúva fixné prvky, tak panel posúvame sami
+if (window.visualViewport) {
+  const vv = window.visualViewport;
+  const onVV = () => {
+    const kb = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
+    document.documentElement.style.setProperty('--kb', kb + 'px');
+    document.body.classList.toggle('kb', kb > 60);
+  };
+  vv.addEventListener('resize', onVV); vv.addEventListener('scroll', onVV);
+}
+
+/* ═════════════════════════ Zoznam: kliknutia, scroll ═════════════════════════ */
+$('#list').addEventListener('click', onListClick);
+$('#doneCard').addEventListener('click', onListClick);
+function onListClick(e) {
+  const it = e.target.closest('.item'); if (!it) return;
+  if (e.target.closest('.check')) toggle(it.dataset.id);
+  else if (e.target.closest('.body') || e.target.closest('.qty')) openEdit(it.dataset.id);
+}
+$('#doneToggle').addEventListener('click', () => { doneOpen = !doneOpen; LS.set('nakup:doneOpen', doneOpen); render(); });
+$('#clearDone').addEventListener('click', clearDone);
+$('#shareBtn').addEventListener('click', share);
+$('#meBtn').addEventListener('click', openSettings);
+
+const title = $('#largeTitle');
+let ticking = false;
+addEventListener('scroll', () => {
+  if (ticking) return; ticking = true;
+  requestAnimationFrame(() => {
+    ticking = false;
+    const y = scrollY;
+    document.body.classList.toggle('scrolled', y > 38);
+    title.style.transform = y < 0 ? `scale(${Math.min(1.1, 1 - y / 500)})` : '';
+  });
+}, { passive: true });
+
+/* ═════════════════════════ Stav pripojenia ═════════════════════════ */
+const STATUS = { live: 'Naživo', saving: 'Ukladám…', offline: 'Offline', demo: 'Demo', error: 'Nepripojené', connecting: 'Pripájam…' };
+let status = 'connecting';
+function setStatus(s) {
+  if (s !== 'demo' && s !== 'error' && !navigator.onLine) s = 'offline';
+  status = s;
+  const e = $('#status'); e.className = 'status ' + s; e.querySelector('b').textContent = STATUS[s] || s;
+}
+addEventListener('online', () => setStatus(store && store.kind === 'firebase' ? 'live' : status));
+addEventListener('offline', () => { if (store && store.kind === 'firebase') setStatus('offline'); });
+
+/* ═════════════════════════ Inštalácia na plochu ═════════════════════════ */
+let deferredInstall = null;
+addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; });
+function setupInstallCard() {
+  const card = $('#installCard');
+  card.hidden = standalone || LS.get('nakup:installHidden', false);
+  $('#installX').onclick = () => { LS.set('nakup:installHidden', true); card.hidden = true; };
+  $('#installHow').onclick = () => {
+    if (deferredInstall) { deferredInstall.prompt(); deferredInstall = null; return; }
+    openSheet(b => { b.append(el('h2', null, 'Pridať na plochu')); const n = el('div', 'note'); installSteps(n); b.append(n); const ok = el('button', 'btn primary', 'Rozumiem'); ok.style.marginTop = '18px'; ok.onclick = closeSheet; b.append(ok); });
+  };
+}
+
+/* ═════════════════════════ Štart ═════════════════════════ */
+function updateMe() { $('#meBtn').textContent = me ? initials(me) : '?'; $('#meBtn').style.background = me ? `linear-gradient(135deg, ${colorOf(me)}, #D83995)` : ''; }
+
+function showOnboard() {
+  document.body.classList.add('onboarding');
+  const ob = $('#onboard'); ob.hidden = false;
+  const joining = !!listId;
+  let linkMode = false;
+  const name = $('#obName'), link = $('#obLink'), go = $('#obGo'), sw = $('#obSwitch');
+  name.value = me;
+  const sync = () => {
+    $('#obLinkField').hidden = !linkMode;
+    if (joining) { $('#obTitle').textContent = 'Pridaj sa k nákupu'; $('#obText').textContent = 'Rodina ťa pozvala do spoločného nákupného zoznamu. Napíš svoje meno, nech ostatní vidia, kto čo pridal.'; go.textContent = 'Pripojiť sa'; sw.hidden = true; }
+    else { go.textContent = linkMode ? 'Pripojiť sa' : 'Vytvoriť nový zoznam'; sw.textContent = linkMode ? 'Chcem vytvoriť nový zoznam' : 'Mám odkaz od rodiny'; }
+    if (standalone && !joining && !linkMode) $('#obText').textContent = 'Ak ti rodina poslala odkaz na WhatsApp, ťukni na „Mám odkaz od rodiny“ a vlož ho sem.';
+  };
+  sync();
+  sw.onclick = () => { linkMode = !linkMode; sync(); (linkMode ? link : name).focus(); };
+  name.onkeydown = e => { if (e.key === 'Enter') go.click(); };
+  link.onkeydown = e => { if (e.key === 'Enter') go.click(); };
+  go.onclick = () => {
+    const n = name.value.trim().slice(0, 30);
+    if (!n) { name.focus(); name.parentElement.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-8px)' }, { transform: 'translateX(8px)' }, { transform: 'translateX(0)' }], { duration: 300 }); return; }
+    let id = listId, created = false;
+    if (!joining) {
+      if (linkMode) { id = idFromText(link.value); if (!id) { toast('Vlož celý odkaz, ktorý ti prišiel'); link.focus(); return; } }
+      else { id = newListId(); created = true; }
+    }
+    me = n; LS.set('nakup:name', me);
+    listId = id;
+    ob.hidden = true; document.body.classList.remove('onboarding');
+    start(created);
+  };
+  if (!me) setTimeout(() => name.focus(), 400);
+}
+
+async function start(justCreated) {
+  LS.set('nakup:list', listId);
+  if (!location.hash.includes(listId)) history.replaceState(null, '', '#' + listId);
+  updateMe(); setupInstallCard(); setStatus('connecting');
+  paint();
+  try {
+    store = hasConfig() ? await firebaseStore(window.FIREBASE_CONFIG, listId) : localStore(listId, 'demo');
+  } catch (e) {
+    console.error('Firebase:', e);
+    store = localStore(listId, 'error');
+    toast('Nepodarilo sa pripojiť', { sub: 'skontroluj config.js' });
+  }
+  store.subscribe((items, remote) => {
+    ITEMS = items.map(i => pending.has(i.id) ? { ...i, done: false } : i);
+    render(!firstData);
+    if (!firstData && remote.length) {
+      const news = remote.map(id => items.find(i => i.id === id)).filter(i => i && !i.done && i.by && norm(i.by) !== norm(me));
+      if (news.length === 1) toast(`+ ${news[0].name}`, { sub: `pridal(a) ${news[0].by}` });
+      else if (news.length > 1) toast(`+ ${news.length} ${plural(news.length, 'položka', 'položky', 'položiek')}`, { sub: `od ${[...new Set(news.map(i => i.by))].join(', ')}` });
+    }
+    firstData = false;
+  }, h => { HIST = h; if (document.body.classList.contains('composing')) paintSugg(parseDraft(input.value).name); }, setStatus);
+
+  if (justCreated) setTimeout(() => {
+    openSheet(b => {
+      b.append(el('h2', null, 'Zoznam je pripravený ✨'));
+      b.append(el('p', 'lead', 'Pošli odkaz do rodinnej skupiny na WhatsAppe. Kto naň ťukne, uvidí ten istý zoznam a môže pridávať aj odškrtávať.'));
+      const st = el('div', 'stack');
+      const inv = el('button', 'btn primary', 'Pozvať rodinu'); inv.onclick = () => { share(); };
+      const later = el('button', 'btn plain', 'Neskôr'); later.onclick = closeSheet;
+      st.append(inv, later); b.append(st);
+    });
+  }, 500);
+}
+
+addEventListener('hashchange', () => { const id = idFromText(location.hash); if (id && id !== listId) { LS.set('nakup:list', id); location.reload(); } });
+
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+if (!listId || !me) showOnboard(); else start(false);
+</script>
+</body>
+</html>

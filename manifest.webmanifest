@@ -1,0 +1,17 @@
+{
+  "name": "Spoločný nákup",
+  "short_name": "Nákup",
+  "description": "Spoločný nákupný zoznam pre celú rodinu",
+  "lang": "sk",
+  "id": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FCFFFF",
+  "theme_color": "#FCFFFF",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
