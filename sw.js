@@ -1,6 +1,6 @@
 // Service worker: appka sa načíta aj bez signálu (napr. v obchode).
 // Po úprave súborov zvýš číslo verzie, nech sa telefónom stiahne nová verzia.
-const CACHE = 'nakup-v2';
+const CACHE = 'nakup-v3';
 const SHELL = ['./', './index.html', './config.js', './manifest.webmanifest', './icons/icon-192.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
