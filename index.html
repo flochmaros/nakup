@@ -562,7 +562,7 @@ async function firebaseStore(cfg, id) {
 function localStore(id, mode) {
   const K = 'nakup:demo:' + id, KH = 'nakup:demoh:' + id;
   let items = LS.get(K, null), hist = LS.get(KH, null);
-  if (!items) { const s = demoSeed(); items = s.items; hist = s.hist; }
+  if (!items) { if (mode === 'demo') { const s = demoSeed(); items = s.items; hist = s.hist; } else { items = []; hist = []; } }
   let cb = null;
   const emit = (remote = []) => {
     LS.set(K, items); LS.set(KH, hist);
