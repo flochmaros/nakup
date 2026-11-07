@@ -276,6 +276,16 @@ body.has-text .stepper{display:flex}
 .note b{color:var(--label)}
 .note.pink{background:var(--pink-soft)}
 .code{font:600 13px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.02em;color:var(--label2);word-break:break-all}
+.lists{display:grid;gap:8px}
+.lists:empty{display:none}
+.list-row{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;padding:8px 16px;border-radius:16px;background:var(--fill);text-align:left;transition:transform .35s var(--spring)}
+.list-row:active{transform:scale(.98)}
+.list-row .emoji{font-size:20px}
+.list-row .lt{flex:1;min-width:0;display:flex;flex-direction:column}
+.list-row b{font-size:16px;font-weight:600}
+.list-row small{font-size:12px;color:var(--label2)}
+.list-row.cur{box-shadow:inset 0 0 0 1.5px var(--pink)}
+.list-row .ok{color:var(--pink);font-weight:700}
 .steps{margin:0;padding-left:20px}
 .steps li{margin:4px 0}
 
@@ -527,8 +537,27 @@ function idFromText(t) {
   return m ? m[1] : null;
 }
 const shareUrl = () => location.origin + location.pathname + '#' + listId;
+const listsGet = () => LS.get('nakup:lists', []);
+function rememberList(id, name) {
+  const all = listsGet(); const prev = all.find(x => x.id === id);
+  const rest = all.filter(x => x.id !== id);
+  rest.unshift({ id, name: name != null ? name : (prev && prev.name) || '', last: Date.now() });
+  LS.set('nakup:lists', rest.slice(0, 15));
+}
+const listName = id => ((listsGet().find(x => x.id === id) || {}).name || '');
+function switchList(id, created) {
+  LS.set('nakup:list', id);
+  if (created) LS.set('nakup:justCreated', id);
+  history.replaceState(null, '', '#' + id);
+  location.reload();
+}
+function paintTitle() {
+  const n = listName(listId) || 'Nákup';
+  $('#largeTitle').textContent = n; $('.nav-title').textContent = n; document.title = n;
+}
 
-let listId = idFromText(location.hash) || LS.get('nakup:list', null);
+// Na ploche (standalone) má prednosť naposledy otvorený zoznam, nie adresa, z ktorej bola appka pridaná
+let listId = standalone ? (LS.get('nakup:list', null) || idFromText(location.hash)) : (idFromText(location.hash) || LS.get('nakup:list', null));
 let me = LS.get('nakup:name', '');
 let store = null;
 let ITEMS = [];
@@ -981,6 +1010,22 @@ function installSteps(container) {
   container.append(ol);
 }
 
+function openNewList() {
+  openSheet(body => {
+    body.append(el('h2', null, 'Nový zoznam'));
+    body.append(el('p', 'lead', 'Vytvorí sa prázdny zoznam s novým odkazom. Pošli ho tým, s kým ho chceš zdieľať. Doterajší zoznam ostane uložený a prepneš sa naň v Nastaveniach.'));
+    const st = el('div', 'stack');
+    const f = el('label', 'field'); f.append(el('span', null, 'Názov'));
+    const inp = el('input'); inp.placeholder = 'napr. Lidl, Chata, Narodeniny'; inp.maxLength = 30; inp.enterKeyHint = 'go';
+    f.append(inp);
+    const go = el('button', 'btn primary', 'Vytvoriť zoznam');
+    go.onclick = () => { const id = newListId(); rememberList(id, inp.value.trim().slice(0, 30)); switchList(id, true); };
+    inp.onkeydown = e => { if (e.key === 'Enter') go.click(); };
+    const no = el('button', 'btn plain', 'Zrušiť'); no.onclick = closeSheet;
+    st.append(f, go, no); body.append(st);
+  });
+}
+
 function openSettings() {
   openSheet(body => {
     body.append(el('h2', null, 'Zoznam'));
@@ -1000,6 +1045,31 @@ function openSettings() {
     const cp = el('button', 'btn secondary', 'Skopírovať odkaz'); cp.onclick = () => copy(shareUrl());
     st.append(inv, cp); body.append(st);
 
+    body.append(el('div', 'section-label', 'Zoznamy'));
+    const ls = el('div', 'stack');
+    const nf = el('label', 'field'); nf.append(el('span', null, 'Názov tohto zoznamu'));
+    const ni = el('input'); ni.value = listName(listId); ni.placeholder = 'Nákup'; ni.maxLength = 30; ni.enterKeyHint = 'done';
+    ni.onchange = () => { rememberList(listId, ni.value.trim().slice(0, 30)); paintTitle(); paintLists(); };
+    ni.onkeydown = e => { if (e.key === 'Enter') ni.blur(); };
+    nf.append(ni); ls.append(nf);
+    const rows = el('div', 'lists');
+    const paintLists = () => {
+      rows.textContent = '';
+      for (const l of listsGet()) {
+        const cur = l.id === listId;
+        const b = el('button', 'list-row' + (cur ? ' cur' : ''));
+        b.append(el('span', 'emoji', '🛒'));
+        const t = el('span', 'lt'); t.append(el('b', null, l.name || 'Nákup'), el('small', null, (cur ? 'otvorený · ' : '') + 'kód ' + l.id.slice(0, 5)));
+        b.append(t);
+        if (cur) b.append(el('span', 'ok', '✓'));
+        b.onclick = () => { if (!cur) switchList(l.id); };
+        rows.append(b);
+      }
+    };
+    paintLists(); ls.append(rows);
+    const nw = el('button', 'btn secondary', '+ Nový zoznam'); nw.onclick = openNewList;
+    ls.append(nw);
+    body.append(ls);
     if (!standalone) {
       body.append(el('div', 'section-label', 'Pridať na plochu'));
       const n = el('div', 'note'); installSteps(n);
@@ -1016,7 +1086,8 @@ function openSettings() {
     code.append(el('div', null, 'Kto má odkaz, vidí a upravuje zoznam. Posielaj ho len rodine.'));
     body.append(code);
 
-    const other = el('button', 'btn plain', 'Otvoriť iný zoznam');
+
+    const other = el('button', 'btn plain', 'Otvoriť zoznam z odkazu');
     const box = el('div', 'stack'); box.hidden = true;
     const lf = el('label', 'field'); lf.append(el('span', null, 'Odkaz alebo kód zoznamu'));
     const li = el('input'); li.placeholder = 'Vlož odkaz z WhatsAppu'; li.autocapitalize = 'off'; li.spellcheck = false; li.setAttribute('autocorrect', 'off');
@@ -1025,7 +1096,7 @@ function openSettings() {
     go.onclick = () => {
       const nid = idFromText(li.value);
       if (!nid) { toast('Toto nevyzerá ako odkaz na zoznam'); li.focus(); return; }
-      LS.set('nakup:list', nid); location.hash = nid; location.reload();
+      switchList(nid);
     };
     li.onkeydown = e => { if (e.key === 'Enter') go.click(); };
     box.append(lf, go);
@@ -1325,6 +1396,9 @@ function showOnboard() {
 
 async function start(justCreated) {
   LS.set('nakup:list', listId);
+  rememberList(listId);
+  if (LS.get('nakup:justCreated', null) === listId) { LS.del('nakup:justCreated'); justCreated = true; }
+  paintTitle();
   if (!location.hash.includes(listId)) history.replaceState(null, '', '#' + listId);
   updateMe(); setupInstallCard(); setStatus('connecting');
   paint();

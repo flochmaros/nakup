@@ -81,6 +81,7 @@ Rovnako ako pri Impostorovi:
 - **Upraviť alebo vymazať:** potiahni položku **doľava** (Upraviť / Vymazať), potiahni ju úplne doľava a rovno sa vymaže, alebo na ňu ťukni či ju podrž a otvorí sa úprava (názov, množstvo, kategória).
 - **Vymazať kúpené:** tlačidlo pri sekcii „Kúpené“. Ak sa pomýliš, máš 5 sekúnd na „Späť“.
 - Keď niekto iný niečo pridá, hore sa ukáže bublina.
+- **Viac zoznamov:** ťukni na svoje písmeno vpravo hore → **Zoznamy** → **+ Nový zoznam** (napr. Lidl, Chata). Medzi zoznamami sa prepínaš tam isto. Každý nový zoznam má vlastný odkaz, ktorý treba poslať rodine.
 - **Bez signálu** appka funguje ďalej a zmeny sa odošlú, keď sa telefón pripojí.
 
 ---
