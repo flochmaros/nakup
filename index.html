@@ -45,6 +45,7 @@
   --stroke:rgba(11,27,38,.07);
   --fill:rgba(11,27,38,.055);
   --card:rgba(255,255,255,.80);
+  --row:#FFFFFF;
   --glass:rgba(252,255,255,.62);
   --glass-strong:rgba(252,255,255,.80);
   --sheet:#FCFFFF;
@@ -73,6 +74,7 @@
     --stroke:rgba(255,255,255,.08);
     --fill:rgba(255,255,255,.075);
     --card:rgba(24,30,41,.78);
+    --row:#181E29;
     --glass:rgba(24,30,41,.55);
     --glass-strong:rgba(24,30,41,.78);
     --sheet:#121821;
@@ -147,10 +149,21 @@ body.scrolled .nav-title{opacity:1;transform:translate(-50%,-50%)}
 .group-title{display:flex;align-items:center;gap:8px;margin:0 6px 9px;font-size:15px;font-weight:600;letter-spacing:-.01em}
 .group-title .emoji{font-size:18px;line-height:1}
 .group-title .count{margin-left:auto;color:var(--label3);font-weight:500;font-variant-numeric:tabular-nums}
-.card{border-radius:22px;background:var(--card);box-shadow:var(--shadow),inset 0 0 0 .5px var(--stroke);overflow:hidden}
-.item{position:relative;display:flex;align-items:center;gap:6px;min-height:58px;padding:7px 14px 7px 8px;transition:background-color .2s}
-.item + .item::before{content:"";position:absolute;top:0;left:52px;right:0;height:.5px;background:var(--sep)}
-.item:has(.body:active){background:var(--fill)}
+.card{border-radius:22px;background:var(--row);box-shadow:var(--shadow),inset 0 0 0 .5px var(--stroke);overflow:hidden}
+.item{position:relative;overflow:hidden;-webkit-touch-callout:none}
+.row{position:relative;z-index:1;display:flex;align-items:center;gap:6px;min-height:58px;padding:7px 14px 7px 8px;background:var(--row);touch-action:pan-y;transition:transform .5s var(--spring),box-shadow .2s;will-change:transform}
+.item.dragging .row{transition:none}
+.item + .item .row::before{content:"";position:absolute;top:0;left:52px;right:0;height:.5px;background:var(--sep)}
+.row:has(.body:active){box-shadow:inset 0 0 0 999px var(--fill)}
+.acts{position:absolute;top:0;right:0;bottom:0;width:156px;display:flex;visibility:hidden;transition:width .5s var(--spring)}
+.item.reveal .acts{visibility:visible}
+.item.dragging .acts{transition:none}
+.act{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#fff;font-size:12px;font-weight:600;letter-spacing:.01em;overflow:hidden;white-space:nowrap;transition:width .35s var(--spring),flex-basis .35s var(--spring)}
+.act svg{width:22px;height:22px;stroke-width:2;transition:transform .35s var(--spring)}
+.act.edit{flex:0 0 78px;background:var(--sky)}
+.act.del{flex:1 1 78px;background:#FF3B30}
+.item.full .act.edit{flex-basis:0}
+.item.full .act.del svg{transform:scale(1.15)}
 .check{flex:none;width:44px;height:44px;display:grid;place-items:center;border-radius:50%}
 .check svg{width:26px;height:26px;overflow:visible}
 .check .ring{fill:transparent;stroke:var(--label3);stroke-width:1.6;transition:fill .22s,stroke .22s}
@@ -166,12 +179,12 @@ body.scrolled .nav-title{opacity:1;transform:translate(-50%,-50%)}
 .item.checking .txt,.item.done .txt{background-size:100% 1.6px;color:var(--label2)}
 .sub{margin-top:1px;font-size:13px;line-height:17px;color:var(--label2)}
 .sub:empty{display:none}
-.item.done{opacity:.7}
+.item.done .check,.item.done .body,.item.done .qty{opacity:.7}
 .item.done .ring{fill:var(--label3);stroke:transparent}
 .qty{flex:none;min-width:36px;height:28px;padding:0 10px;border-radius:14px;display:grid;place-items:center;background:var(--sky-soft);color:var(--sky);font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
 .item.done .qty{background:var(--fill);color:var(--label2)}
-.item.flash{animation:flash 1s var(--ease)}
-@keyframes flash{0%,100%{background-color:transparent}25%{background-color:var(--pink-soft)}}
+.item.flash .row{animation:flash 1s var(--ease)}
+@keyframes flash{0%,100%{box-shadow:inset 0 0 0 999px transparent}25%{box-shadow:inset 0 0 0 999px var(--pink-soft)}}
 
 /* Kúpené */
 .done-section{margin-top:30px}
@@ -632,8 +645,9 @@ function buildItem(id) {
   const it = el('div', 'item');
   it.dataset.id = id;
   it.style.viewTransitionName = vtName('i-', id);
-  it.innerHTML = '<button class="check" role="checkbox"><svg viewBox="0 0 26 26" aria-hidden="true"><circle class="ring" cx="13" cy="13" r="11.2"/><path class="tick" d="M8.3 13.4l3.2 3.2 6.3-6.9"/></svg></button><button class="body"><div class="name"><span class="txt"></span></div><div class="sub"></div></button><span class="qty"></span>';
+  it.innerHTML = '<div class="acts" aria-hidden="true"><button class="act edit" tabindex="-1"><svg class="i" viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg>Upraviť</button><button class="act del" tabindex="-1"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>Vymazať</button></div><div class="row"><button class="check" role="checkbox"><svg viewBox="0 0 26 26" aria-hidden="true"><circle class="ring" cx="13" cy="13" r="11.2"/><path class="tick" d="M8.3 13.4l3.2 3.2 6.3-6.9"/></svg></button><button class="body"><div class="name"><span class="txt"></span></div><div class="sub"></div></button><span class="qty"></span></div>';
   it.querySelector('.check').setAttribute('aria-label', 'Kúpené');
+  attachSwipe(it);
   return it;
 }
 function itemEl(item) {
@@ -1141,8 +1155,96 @@ $('#list').addEventListener('click', onListClick);
 $('#doneCard').addEventListener('click', onListClick);
 function onListClick(e) {
   const it = e.target.closest('.item'); if (!it) return;
-  if (e.target.closest('.check')) toggle(it.dataset.id);
-  else if (e.target.closest('.body') || e.target.closest('.qty')) openEdit(it.dataset.id);
+  const id = it.dataset.id;
+  if (it.dataset.lp || it.dataset.dragged) { delete it.dataset.lp; delete it.dataset.dragged; return; }
+  if (e.target.closest('.act.edit')) { closeSwipe(); openEdit(id); return; }
+  if (e.target.closest('.act.del')) { swipeDelete(it); return; }
+  if (it.classList.contains('opened')) { closeSwipe(); return; }
+  if (e.target.closest('.check')) toggle(id);
+  else if (e.target.closest('.body') || e.target.closest('.qty')) openEdit(id);
+}
+
+/* Potiahnutie doľava = Upraviť / Vymazať, podržanie = Upraviť */
+const OPEN_W = 156;
+let swipeOpen = null;
+function setX(item, x) {
+  item.querySelector('.row').style.transform = x ? `translateX(${x}px)` : '';
+  clearTimeout(item._rv);
+  if (x) item.classList.add('reveal');
+  else item._rv = setTimeout(() => { if (!item.querySelector('.row').style.transform) item.classList.remove('reveal'); }, 520);
+  item.querySelector('.acts').style.width = Math.max(OPEN_W, -x) + 'px';
+}
+function closeSwipe() {
+  if (!swipeOpen) return;
+  const it = swipeOpen; swipeOpen = null;
+  it.classList.remove('opened', 'full'); setX(it, 0);
+}
+function swipeDelete(it) {
+  if (swipeOpen === it) swipeOpen = null;
+  it.classList.add('full'); setX(it, -it.offsetWidth - 20);
+  haptic();
+  setTimeout(() => deleteItem(it.dataset.id), 200);
+}
+function attachSwipe(item) {
+  const row = item.querySelector('.row');
+  let sx = 0, sy = 0, base = 0, x = 0, pid = null, drag = false, moved = false, lp = null;
+  row.addEventListener('pointerdown', e => {
+    if (e.button > 0) return;
+    delete item.dataset.lp; delete item.dataset.dragged;
+    if (swipeOpen && swipeOpen !== item) closeSwipe();
+    pid = e.pointerId; sx = e.clientX; sy = e.clientY;
+    base = item.classList.contains('opened') ? -OPEN_W : 0; x = base; drag = false; moved = false;
+    clearTimeout(lp);
+    lp = setTimeout(() => {
+      lp = null;
+      if (moved || pid == null) return;
+      pid = null; item.dataset.lp = '1'; haptic(); closeSwipe(); openEdit(item.dataset.id);
+    }, 520);
+  });
+  row.addEventListener('pointermove', e => {
+    if (e.pointerId !== pid) return;
+    if (e.pointerType === 'mouse' && e.buttons === 0) { pid = null; clearTimeout(lp); return; }
+    const dx = e.clientX - sx, dy = e.clientY - sy;
+    if (!drag) {
+      if (Math.abs(dx) > 8 || Math.abs(dy) > 8) { moved = true; clearTimeout(lp); }
+      if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+        drag = true; item.classList.add('dragging');
+        try { row.setPointerCapture(pid); } catch {}
+      } else return;
+    }
+    let nx = base + dx;
+    if (nx > 0) nx *= 0.2;
+    const full = nx < -item.offsetWidth * 0.6;
+    if (full !== item.classList.contains('full')) { item.classList.toggle('full', full); haptic(); }
+    x = nx; setX(item, x);
+  });
+  const end = e => {
+    if (e.pointerId !== pid) return;
+    pid = null; clearTimeout(lp);
+    if (!drag) return;
+    drag = false; item.classList.remove('dragging'); item.dataset.dragged = '1';
+    setTimeout(() => { delete item.dataset.dragged; }, 400);
+    if (item.classList.contains('full')) { swipeDelete(item); return; }
+    if (x < -60) { item.classList.add('opened'); swipeOpen = item; setX(item, -OPEN_W); }
+    else { item.classList.remove('opened'); if (swipeOpen === item) swipeOpen = null; setX(item, 0); }
+  };
+  row.addEventListener('pointerup', end);
+  row.addEventListener('pointercancel', end);
+  row.addEventListener('contextmenu', e => e.preventDefault());
+}
+document.addEventListener('pointerdown', e => { if (swipeOpen && !swipeOpen.contains(e.target)) closeSwipe(); }, true);
+addEventListener('scroll', () => { if (swipeOpen) closeSwipe(); }, { passive: true });
+
+/* Jednorazová nápoveda: položka sa trochu odsunie a ukáže akcie */
+function maybeHint() {
+  if (LS.get('nakup:hinted', false) || document.body.classList.contains('onboarding')) return;
+  const first = $('#list .item'); if (!first) return;
+  LS.set('nakup:hinted', true);
+  setTimeout(() => {
+    setX(first, -96);
+    setTimeout(() => setX(first, 0), 750);
+    toast('Tip: potiahni doľava', { sub: 'upraviť · vymazať' });
+  }, 900);
 }
 $('#doneToggle').addEventListener('click', () => { doneOpen = !doneOpen; LS.set('nakup:doneOpen', doneOpen); render(); });
 $('#clearDone').addEventListener('click', clearDone);
@@ -1241,6 +1343,7 @@ async function start(justCreated) {
       if (news.length === 1) toast(`+ ${news[0].name}`, { sub: `pridal(a) ${news[0].by}` });
       else if (news.length > 1) toast(`+ ${news.length} ${plural(news.length, 'položka', 'položky', 'položiek')}`, { sub: `od ${[...new Set(news.map(i => i.by))].join(', ')}` });
     }
+    if (firstData) setTimeout(maybeHint, 600);
     firstData = false;
   }, h => { HIST = h; if (document.body.classList.contains('composing')) paintSugg(parseDraft(input.value).name); }, setStatus);
 

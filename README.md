@@ -78,7 +78,7 @@ Rovnako ako pri Impostorovi:
 - **Kategória** sa odhadne podľa názvu. Ak je zlá, ťukni na inú a appka si to zapamätá.
 - **Návrhy:** pri písaní appka ponúka, čo ste už kupovali. Ťuknutím položku hneď pridáš. **Podržaním** ju odstrániš z návrhov.
 - **Odškrtnúť:** ťukni na krúžok. Položka sa presunie do „Kúpené“.
-- **Upraviť:** ťukni na názov. Môžeš zmeniť názov, množstvo, kategóriu alebo položku vymazať.
+- **Upraviť alebo vymazať:** potiahni položku **doľava** (Upraviť / Vymazať), potiahni ju úplne doľava a rovno sa vymaže, alebo na ňu ťukni či ju podrž a otvorí sa úprava (názov, množstvo, kategória).
 - **Vymazať kúpené:** tlačidlo pri sekcii „Kúpené“. Ak sa pomýliš, máš 5 sekúnd na „Späť“.
 - Keď niekto iný niečo pridá, hore sa ukáže bublina.
 - **Bez signálu** appka funguje ďalej a zmeny sa odošlú, keď sa telefón pripojí.
